@@ -13,10 +13,10 @@
 } @else if (error() && !isShowingCachedData()) {
   <error-card
     [errorTxt]="error()"
-    [actionAdvice]="'Check your config!'"
+    [actionAdvice]="T.F.ISSUE_PANEL.CHECK_CONFIG | translate"
   ></error-card>
 } @else if (!agendaItems()?.length) {
-  <div class="empty">No items found.</div>
+  <div class="empty">{{ T.F.ISSUE_PANEL.NO_CALENDAR_ITEMS | translate }}</div>
 } @else {
   <div class="agenda">
     @for (day of agendaItems(); track day.dayStr) {

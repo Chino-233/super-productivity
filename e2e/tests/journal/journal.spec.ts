@@ -119,6 +119,11 @@ test('uses the original Chinese settings and persists custom journal categories'
   await page.getByText('Localization', { exact: true }).click();
   await page.getByRole('combobox', { name: 'Language', exact: true }).click();
   await page.getByRole('option', { name: '中文(简体)', exact: true }).click();
+  await expect(page.locator('page-title')).toContainText('全局设置');
+  await expect(page.locator('theme-selector .appearance-title')).toContainText('外观');
+  await expect(page.locator('theme-selector mat-select')).toContainText('默认');
+  await expect(page.getByRole('link', { name: '更新日志', exact: true })).toHaveCount(1);
+  await expect(page.getByRole('link', { name: '日志', exact: true })).toHaveCount(1);
   await page.locator('magic-side-nav a[href="#/journal"]').click();
   const journal = page.locator('journal');
   await expect(journal.locator('h1')).toContainText('日记');

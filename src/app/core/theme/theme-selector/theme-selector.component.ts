@@ -126,7 +126,11 @@ const valueToRef = (value: string): CustomThemeRef => {
               @for (theme of customThemeService.themes(); track optionValue(theme)) {
                 <mat-option [value]="optionValue(theme)">
                   <span class="theme-option-row">
-                    <span class="theme-option-label">{{ theme.name }}</span>
+                    <span class="theme-option-label">{{
+                      theme.kind === 'builtin' && theme.id === 'default'
+                        ? (T.GCF.MISC.THEME_DEFAULT | translate)
+                        : theme.name
+                    }}</span>
                     @if (theme.requiredMode && theme.requiredMode !== 'system') {
                       <span class="theme-mode-indicator">
                         ({{ theme.requiredMode === 'dark' ? '🌙' : '☀️' }})

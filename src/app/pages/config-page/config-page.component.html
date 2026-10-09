@@ -336,7 +336,7 @@
   <a
     href="https://github.com/super-productivity/super-productivity/releases/latest"
     target="_blank"
-    >Changelog</a
+    >{{ T.PS.CHANGELOG | translate }}</a
   >
   @if (isUpdateCheckPossible) {
     –
@@ -350,7 +350,7 @@
   <a
     (click)="showLogs(); $event?.preventDefault()"
     href="#"
-    >Logs</a
+    >{{ T.DIALOG_LOGS.TITLE | translate }}</a
   >
   –
   <a

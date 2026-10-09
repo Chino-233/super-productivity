@@ -1,4 +1,4 @@
-<h4>Connect Calendar</h4>
+<h4>{{ T.F.ISSUE_PANEL.CONNECT_CALENDAR | translate }}</h4>
 <div class="items">
   <button
     class="provider-tile focus-ring"
@@ -22,7 +22,7 @@
     (click)="openSetupDialog('ICAL', 'OTHER')"
   >
     <mat-icon>calendar_month</mat-icon>
-    <span>Other (iCal)</span>
+    <span>{{ T.F.ISSUE_PANEL.OTHER_CALENDAR | translate }}</span>
   </button>
   @for (provider of pluginCalendarProviders; track provider.pluginId) {
     <button
@@ -54,7 +54,7 @@
   }
 </div>
 
-<h4>Setup Issue Provider</h4>
+<h4>{{ T.F.ISSUE_PANEL.SETUP_ISSUE_PROVIDER | translate }}</h4>
 
 <div class="items">
   <button

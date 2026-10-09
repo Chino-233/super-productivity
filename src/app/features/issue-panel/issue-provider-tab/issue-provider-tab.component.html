@@ -45,7 +45,7 @@
       >
         <!--      <mat-icon matPrefix>filter_alt</mat-icon>-->
         <!--      <mat-label>Filter</mat-label>-->
-        <mat-label>Search</mat-label>
+        <mat-label>{{ T.MH.SEARCH | translate }}</mat-label>
         <mat-icon
           matPrefix
           style="opacity: 0.5"
@@ -58,7 +58,7 @@
           autocomplete="off"
           matInput
           name="search"
-          placeholder="Search"
+          [placeholder]="T.MH.SEARCH | translate"
         />
 
         @if (isPinned()) {
@@ -67,7 +67,7 @@
             matSuffix
             style="cursor: pointer"
             (click)="unPinSearch()"
-            [matTooltip]="'Clear pinned search query'"
+            [matTooltip]="T.F.ISSUE_PANEL.CLEAR_PINNED_SEARCH | translate"
             >bookmark</mat-icon
           >
         } @else if (
@@ -78,7 +78,7 @@
             matSuffix
             style="cursor: pointer"
             (click)="pinSearch()"
-            [matTooltip]="'Remember search query'"
+            [matTooltip]="T.F.ISSUE_PANEL.PIN_SEARCH | translate"
             >bookmark_add</mat-icon
           >
         }
@@ -88,10 +88,8 @@
             ><a
               [href]="issueProviderHelpLink()"
               target="_blank"
-              >{{
-                ISSUE_PROVIDER_HUMANIZED[ip.issueProviderKey] || ip.issueProviderKey
-              }}
-              search syntax</a
+              >{{ ISSUE_PROVIDER_HUMANIZED[ip.issueProviderKey] || ip.issueProviderKey }}
+              {{ T.F.ISSUE_PANEL.SEARCH_SYNTAX | translate }}</a
             ></mat-hint
           >
         }
@@ -114,10 +112,10 @@
   } @else if (error()) {
     <error-card
       [errorTxt]="error()"
-      [actionAdvice]="'Check your config!'"
+      [actionAdvice]="T.F.ISSUE_PANEL.CHECK_CONFIG | translate"
     ></error-card>
   } @else if (!issueItems()?.length && searchText()?.length > 0) {
-    <div class="empty">No items found (already added are not shown)</div>
+    <div class="empty">{{ T.F.ISSUE_PANEL.NO_SEARCH_RESULTS | translate }}</div>
   } @else {
     <div
       class="item-list"

@@ -6,7 +6,7 @@ import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuContent, MatMenuTrigger } from '@angular/material/menu';
 import { WorkContextMenuComponent } from '../../work-context-menu/work-context-menu.component';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { T } from '../../../t.const';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -56,7 +56,9 @@ import { KeyboardConfig } from '@sp/keyboard-config';
             >{{ contextIcon() }}</mat-icon
           >
         }
-        <span class="page-title-text">{{ displayTitle() }}</span>
+        <span class="page-title-text">{{
+          isSpecialSection() ? (displayTitle() | translate) : displayTitle()
+        }}</span>
       </div>
       @if (!isXxxs() && !isSpecialSection()) {
         <div class="page-title-actions">
@@ -324,7 +326,6 @@ export class PageTitleComponent {
   private _workContextService = inject(WorkContextService);
   readonly taskViewCustomizerService = inject(TaskViewCustomizerService);
   private readonly _configService = inject(GlobalConfigService);
-  private _translateService = inject(TranslateService);
   private _store = inject(Store);
   private _plainspaceShareService = inject(PlainspaceShareService);
 
@@ -387,7 +388,7 @@ export class PageTitleComponent {
 
   displayTitle = computed(() => {
     const key = this._routeTitleKey();
-    return key ? this._translateService.instant(key) : this.activeWorkContextTitle();
+    return key ?? this.activeWorkContextTitle();
   });
 
   // Icon shown next to the title, defaulting the same way the nav does

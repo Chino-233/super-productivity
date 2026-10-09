@@ -171,21 +171,21 @@
       "CATEGORY_OTHER": "其他"
     },
     "IOS_SHARE": {
-      "SAVE": "Save",
-      "DESTINATION": "Inbox",
-      "NEXT_OPEN": "Added when you next open Super Productivity",
-      "SAVE_ERROR": "Could not save. Please try again.",
-      "IMPORT_ERROR": "Could not import shared content. It has been kept on this device; reopen the app to retry.",
-      "INVALID": "Share a link or text (up to 100,000 characters)."
+      "SAVE": "保存",
+      "DESTINATION": "收件箱",
+      "NEXT_OPEN": "下次打开 Super Productivity 时添加",
+      "SAVE_ERROR": "无法保存，请重试。",
+      "IMPORT_ERROR": "无法导入共享内容。内容已保留在此设备上；请重新打开应用重试。",
+      "INVALID": "分享链接或文本（最多 100,000 个字符）。"
     },
     "ANDROID": {
-      "TIME_RECOVERY_FAILED": "Could not recover the timer's recorded time. Please check the task's time before continuing.",
+      "TIME_RECOVERY_FAILED": "无法恢复计时器记录的时间。继续前请检查任务用时。",
       "FOREGROUND_SERVICE_START_FAILED_FOCUS": "Android 阻止了专注模式的常驻通知。计时器会继续在应用内运行，但后台提醒可能不可用。请检查通知权限以及电池和后台运行限制。",
       "FOREGROUND_SERVICE_START_FAILED_TRACKING": "Android 阻止了时间追踪的常驻通知。应用仍会记录时间，但后台恢复功能可能不可用。请检查通知权限以及电池和后台运行限制。",
       "OPEN_NOTIFICATION_SETTINGS": "打开设置",
       "WIDGET_TASKS_UPDATED": "已通过小组件更新 {{count}} 个任务",
-      "CAPTURES_IMPORTED": "{{count}} task(s) added from quick add",
-      "CAPTURE_IMPORT_ERROR": "Some quick-add tasks could not be added yet. They are kept and will be retried."
+      "CAPTURES_IMPORTED": "已从快速添加中添加 {{count}} 个任务",
+      "CAPTURE_IMPORT_ERROR": "部分快速添加任务暂时无法添加。它们已保留，之后会重试。"
     },
     "ATTACHMENT": {
       "LOCAL_FILE_UNAVAILABLE": "此附件仅在添加它的设备上可用。",
@@ -666,7 +666,18 @@
     "ISSUE_PANEL": {
       "CALENDAR_AGENDA": {
         "OFFLINE_BANNER_MSG": "正在显示缓存中的日历结果。请注意，数据可能已过时。"
-      }
+      },
+      "NO_SEARCH_RESULTS": "未找到事项（已添加的事项不会显示）",
+      "NO_CALENDAR_ITEMS": "暂无日程。",
+      "CONNECT_CALENDAR": "连接日历",
+      "SETUP_ISSUE_PROVIDER": "设置事项提供商",
+      "GOOGLE_CALENDAR_ICAL_HELP": "如何获取 Google 日历的 iCal 地址（仅查看）？",
+      "OTHER_CALENDAR": "其他（iCal）",
+      "CLEAR_PINNED_SEARCH": "清除固定的搜索词",
+      "PIN_SEARCH": "记住搜索词",
+      "SEARCH_SYNTAX": "搜索语法",
+      "CHECK_CONFIG": "检查配置！",
+      "OUTLOOK_CALENDAR_ICAL_HELP": "如何获取 Outlook 365 的 iCal 地址（ICS）？"
     },
     "JIRA": {
       "BANNER": {
@@ -816,14 +827,14 @@
         "DAYS_WORKED": "工作天数",
         "FOCUS_SESSION_TRENDS": "专注会话超时",
         "GLOBAL_METRICS": "全局指标",
-        "HEATMAP_SHARE_FAILED": "Failed to share heatmap",
-        "HEATMAP_SHARE_TAGLINE": "{{title}} – With the Super Productivity App",
-        "HEATMAP_SHARED_TO_DEVICE": "Heatmap saved to device storage",
-        "HEATMAP_SHARED_TO_PATH": "Heatmap saved to {{path}}",
+        "HEATMAP_SHARE_FAILED": "分享热力图失败",
+        "HEATMAP_SHARE_TAGLINE": "{{title}} – 使用 Super Productivity 应用",
+        "HEATMAP_SHARED_TO_DEVICE": "热力图已保存到设备存储空间",
+        "HEATMAP_SHARED_TO_PATH": "热力图已保存到 {{path}}",
         "NO_ADDITIONAL_DATA_YET": "尚未收集额外数据。使用每日摘要 \"评估\" 看板上的表单进行操作。",
         "PRODUCTIVITY_BREAKDOWN_OVER_TIME": "生产力与可持续性超时",
-        "SHARE_HEATMAP": "Share heatmap",
-        "SHARE_STATS": "Share your productivity stats",
+        "SHARE_HEATMAP": "分享热力图",
+        "SHARE_STATS": "分享你的效率统计数据",
         "SIMPLE_CLICK_COUNTERS_OVER_TIME": "点击计数器随时间的变化",
         "SIMPLE_COUNTERS": "简单计数器和习惯跟踪",
         "SIMPLE_STOPWATCH_COUNTERS_OVER_TIME": "秒表计数器随时间的变化",
@@ -900,7 +911,7 @@
       },
       "D_FULLSCREEN": {
         "CONFIRM_DISCARD_MSG": "你有未保存的更改。要放弃吗？",
-        "CONFIRM_SAVE_BEFORE_OPENING_NEW_TASK": "Save the current note before opening a new task?",
+        "CONFIRM_SAVE_BEFORE_OPENING_NEW_TASK": "打开新任务前要保存当前笔记吗？",
         "TOOLBAR": {
           "BOLD": "粗体",
           "BULLET_LIST": "无序列表",
@@ -1054,7 +1065,7 @@
         "MSG": "您确定要删除项目 \"{{title}}\" 吗？"
       },
       "D_RENAME": {
-        "PLACEHOLDER": "Enter project name"
+        "PLACEHOLDER": "输入项目名称"
       },
       "COMPLETE": {
         "COMPLETED_ON": "完成于 {{date}}",
@@ -1115,7 +1126,7 @@
         "ARCHIVED": "已归档项目",
         "CREATED": "创建了项目 <strong>{{title}}</strong>。您可以从左上角的菜单中选择它。",
         "DELETED": "已删除项目",
-        "DISCARDED": "Changes discarded",
+        "DISCARDED": "已放弃更改",
         "REOPENED": "项目已重新打开",
         "SHOW_IN_MENU": "在侧边栏中显示",
         "UNARCHIVED": "已取消归档项目",
@@ -1324,7 +1335,7 @@
         "CHANGE_PW_AND_DECRYPT": "更改并尝试解密",
         "P1": "您的远程数据已加密，解密失败。请输入正确的密码！",
         "P2_FORGOT_PW": "或者您也可以更改密码，这将覆盖所有远程数据。",
-        "P3_START_OVER": "If you cannot recover the password, leave the sync server as it is — your data there stays intact. To erase it and start over from this device, close this window and use <strong>Force Overwrite</strong> in Settings → Sync & Backup → Sync.",
+        "P3_START_OVER": "如果无法找回密码，请保持同步服务器上的数据不变，服务器中的数据会完整保留。若要清除服务器数据并从此设备重新开始，请关闭此窗口，然后前往“设置 → 同步与备份 → 同步”并使用<strong>强制覆盖</strong>。",
         "PASSWORD": "密码",
         "TITLE": "解密失败"
       },
@@ -1624,7 +1635,7 @@
         "AUTH_TOKEN_REJECTED": "同步令牌被服务器拒绝：{{reason}}。请获取新的令牌。",
         "BTN_CONFIGURE": "配置",
         "BTN_FORCE_OVERWRITE": "强制覆盖",
-        "BTN_RESOLVE_CONFLICT": "Resolve…",
+        "BTN_RESOLVE_CONFLICT": "解决…",
         "CHANGE_PASSWORD_FAILED": "更改密码失败：{{message}}",
         "CLOCK_DRIFT_WARNING": "您的设备时钟似乎偏差 {{minutes}} 分钟。这可能导致同步问题。",
         "COMPACTION_FAILED": "数据库清理失败。应用可能变慢。",
@@ -1634,7 +1645,7 @@
         "DECRYPTION_FAILED": "解密同步数据失败。请检查您的加密密码。",
         "DEFERRED_ACTION_FAILED": "同步期间所做的部分更改无法保存。请重新加载以恢复。",
         "DEFERRED_ACTION_PERMANENT_FAILED": "一项更改无法保存，同步已暂停。请重新加载以恢复到上次保存的状态。",
-        "DEFERRED_ACTIONS_STUCK": "Sync seems stuck. Your recent changes are waiting and have not been saved yet. Reloading the app recovers sync but discards them.",
+        "DEFERRED_ACTIONS_STUCK": "同步似乎卡住了。最近的更改仍在等待处理，尚未保存。重新加载应用可以恢复同步，但会丢弃这些更改。",
         "DISABLE_ENCRYPTION_FAILED": "禁用加密失败：{{message}}",
         "ENABLE_ENCRYPTION_FAILED": "启用加密失败：{{message}}",
         "ENCRYPTION_PASSWORD_REQUIRED": "收到加密数据，但未配置加密密码。请在同步设置中设置您的加密密码。",
@@ -1742,7 +1753,7 @@
         "CONFIRM_MSG": "您确定要删除标签 \"{{tagName}}\" 吗？它将从所有任务中删除。这无法撤消。"
       },
       "D_RENAME": {
-        "PLACEHOLDER": "Enter tag name"
+        "PLACEHOLDER": "输入标签名称"
       },
       "D_EDIT": {
         "ADD": "为 \"{{title}}\" 添加标签",
@@ -1846,7 +1857,7 @@
         "SUB_TASKS_EMPTY": "子任务",
         "TIME": "时间",
         "TITLE_PLACEHOLDER": "输入标题",
-        "OPEN_IN_FULLSCREEN": "Open in fullscreen"
+        "OPEN_IN_FULLSCREEN": "全屏打开"
       },
       "B": {
         "ADD_ALL_TO_TODAY": "全部添加到今天",
@@ -1878,11 +1889,11 @@
         "MOVE_TO_OTHER_PROJECT": "移至其他项目",
         "MOVE_TO_REGULAR": "移至常规列表",
         "MOVE_TO_TOP": "移至顶部",
-        "PRIORITY": "Priority",
-        "PRIORITY_HIGH": "High",
-        "PRIORITY_LOW": "Low",
-        "PRIORITY_MEDIUM": "Medium",
-        "PRIORITY_NONE": "None",
+        "PRIORITY": "优先级",
+        "PRIORITY_HIGH": "高",
+        "PRIORITY_LOW": "低",
+        "PRIORITY_MEDIUM": "中",
+        "PRIORITY_NONE": "无",
         "OPEN_ATTACH": "附加文件或链接",
         "OPEN_ISSUE": "在浏览器中打开",
         "OPEN_TIME": "打开时间追踪面板",
@@ -1952,7 +1963,7 @@
         "SCHEDULED_FOR": "计划时间",
         "SNOOZE": "推迟",
         "SNOOZE_FOR": "推迟 {{m}} 分钟",
-        "SNOOZE_FOR_SHORT": "{{m}}m",
+        "SNOOZE_FOR_SHORT": "{{m}}分钟",
         "START": "开始",
         "TASK_REMINDERS": "任务提醒",
         "UNSCHEDULE": "取消计划",
@@ -2046,12 +2057,12 @@
           },
           "NOTHING_TO_DO": "所选任务没有需要更改的内容",
           "PRIORITY_CLEARED": {
-            "ONE": "Cleared the priority of {{count}} task",
-            "OTHER": "Cleared the priority of {{count}} tasks"
+            "ONE": "已清除 {{count}} 个任务的优先级",
+            "OTHER": "已清除 {{count}} 个任务的优先级"
           },
           "PRIORITY_SET": {
-            "ONE": "Set the priority of {{count}} task to {{priority}}",
-            "OTHER": "Set the priority of {{count}} tasks to {{priority}}"
+            "ONE": "已将 {{count}} 个任务的优先级设为{{priority}}",
+            "OTHER": "已将 {{count}} 个任务的优先级设为{{priority}}"
           },
           "SCHEDULED": {
             "ONE": "已将 {{count}} 个任务安排在 {{date}}",
@@ -2160,12 +2171,12 @@
         "ADVANCED_CFG": "高级配置",
         "EDIT": "编辑重复任务配置",
         "HEATMAP_LABEL": "活动",
-        "INHERITED_SUBTASKS": "New instances get these subtasks:",
-        "NEXT_OCCURRENCE": "Next new instance: {{date}}",
-        "NEXT_OCCURRENCE_AFTER_COMPLETION": "A new instance is created as soon as the current one is done",
-        "NEXT_OCCURRENCE_FROM_COMPLETION": "Next new instance: {{date}}, later if the current one is completed late",
-        "NEXT_OCCURRENCE_UNSAVED": "The date of the next new instance updates after saving",
-        "NEXT_OCCURRENCE_WAIT_FOR_COMPLETION": "Next new instance: {{date}}, if the current one is done by then",
+        "INHERITED_SUBTASKS": "新建的重复任务会包含以下子任务：",
+        "NEXT_OCCURRENCE": "下次新建任务：{{date}}",
+        "NEXT_OCCURRENCE_AFTER_COMPLETION": "当前任务完成后会立即创建新的重复任务",
+        "NEXT_OCCURRENCE_FROM_COMPLETION": "下次新建任务：{{date}}；如果当前任务延迟完成，日期也会相应顺延",
+        "NEXT_OCCURRENCE_UNSAVED": "保存后会更新下次新建任务的日期",
+        "NEXT_OCCURRENCE_WAIT_FOR_COMPLETION": "下次新建任务：{{date}}；前提是届时当前任务已完成",
         "TAG_LABEL": "要添加的标签",
         "TIME_SPENT_THIS_MONTH": "本月",
         "TIME_SPENT_THIS_WEEK": "本周",
@@ -2252,7 +2263,7 @@
         "FILTER_DEFAULT": "无筛选",
         "FILTER_ESTIMATED_TIME": "预计时间",
         "FILTER_NOT_SPECIFIED": "未指定",
-        "FILTER_PRIORITY": "Priority",
+        "FILTER_PRIORITY": "优先级",
         "FILTER_PROJECT": "项目",
         "FILTER_SCHEDULED_DATE": "计划日期",
         "FILTER_TAG": "标签",
@@ -2277,7 +2288,7 @@
         "SORT_DEADLINE": "截止日期",
         "SORT_DEFAULT": "默认",
         "SORT_NAME": "名称",
-        "SORT_PRIORITY": "Priority",
+        "SORT_PRIORITY": "优先级",
         "SORT_SCHEDULED_DATE": "计划日期",
         "TIME_1HOUR": "> 1 小时",
         "TIME_2HOUR": "> 2 小时",
@@ -2440,7 +2451,7 @@
     },
     "EXPORT_DATA": "导出数据",
     "IMPORT_FROM_FILE": "从文件导入",
-    "IMPORT_FROM_TICKTICK": "Import from TickTick",
+    "IMPORT_FROM_TICKTICK": "从 TickTick 导入",
     "IMPORT_FROM_TODOIST": "从 Todoist 导入",
     "IMPORT_FROM_URL": "从 URL 导入",
     "IMPORT_FROM_URL_DIALOG_DESCRIPTION": "请输入您要导入的超级生产力备份 JSON 文件的完整 URL。",
@@ -2450,11 +2461,11 @@
     "PRIVACY_EXPORT_DESCRIPTION": "导出匿名化数据（发送至 contact@super-productivity.com 进行调试）",
     "S_BACKUP_DOWNLOADED": "备份已下载至安卓文档文件夹",
     "S_ERR_IMPORT_FAILED": "导入数据失败",
-    "S_ERR_IMPORT_UNREPAIRABLE": "Import failed: this backup contains data that can't be repaired. Please try an older backup, and export your logs and report the issue.",
+    "S_ERR_IMPORT_UNREPAIRABLE": "导入失败：此备份中的数据无法修复。请尝试较早的备份，并导出日志后报告此问题。",
     "S_ERR_INVALID_DATA": "导入失败：JSON 无效",
     "S_ERR_INVALID_URL": "导入失败：提供的 URL 无效",
     "S_ERR_NETWORK": "导入失败：从 URL 获取数据时网络错误",
-    "S_ERR_TICKTICK_IMPORT_OPEN": "Could not open the TickTick importer",
+    "S_ERR_TICKTICK_IMPORT_OPEN": "无法打开 TickTick 导入工具",
     "S_ERR_TODOIST_IMPORT_OPEN": "无法打开 Todoist 导入工具",
     "S_IMPORT_FROM_URL_ERR_DECODE": "错误：无法解码用于导入的 URL 参数。请确保其格式正确。",
     "URL_PLACEHOLDER": "输入要从中导入的 URL"
@@ -2501,7 +2512,7 @@
     "PASSWORD_STRENGTH_WEAK": "弱",
     "PROCESSING": "处理中",
     "REMOVE": "移除",
-    "RENAME": "Rename",
+    "RENAME": "重命名",
     "SAVE": "保存",
     "SHARE": "共享",
     "SUBMIT": "提交",
@@ -2512,7 +2523,11 @@
     "TOMORROW": "明天",
     "UNDO": "撤销",
     "WITHOUT_PROJECT": "无项目",
-    "YESTERDAY": "昨天"
+    "YESTERDAY": "昨天",
+    "SYSTEM_SHARE": "系统分享",
+    "COPY_TEXT": "复制文本",
+    "MASTODON_INSTANCE": "Mastodon 实例",
+    "EMAIL": "电子邮件"
   },
   "GCF": {
     "APP_FEATURES": {
@@ -2722,34 +2737,34 @@
     },
     "LANG": {
       "AR": "عربى",
-      "CS": "Czech",
-      "DE": "Deutsch",
-      "EN": "English",
-      "ES": "Español",
+      "CS": "捷克语",
+      "DE": "德语",
+      "EN": "英语",
+      "ES": "西班牙语",
       "FA": "فارسی",
-      "FI": "Suomi",
-      "FR": "français",
-      "HR": "Hrvatski",
-      "ID": "Indonesian",
-      "IT": "Italiano",
+      "FI": "芬兰语",
+      "FR": "法语",
+      "HR": "克罗地亚语",
+      "ID": "印度尼西亚语",
+      "IT": "意大利语",
       "JA": "日本語",
       "KO": "한국어",
       "LABEL": "语言",
-      "NB": "Norsk Bokmål",
-      "NL": "Nederlands",
-      "PL": "Polish",
-      "PT": "Português",
-      "PT_BR": "Português (Brazil)",
-      "RO": "Română",
-      "RO_MD": "Română (Moldova)",
+      "NB": "书面挪威语（博克马尔）",
+      "NL": "荷兰语",
+      "PL": "波兰语",
+      "PT": "葡萄牙语",
+      "PT_BR": "巴西葡萄牙语",
+      "RO": "罗马尼亚语",
+      "RO_MD": "摩尔多瓦罗马尼亚语",
       "RU": "Русский",
-      "SK": "Slovak",
-      "SV": "Svenska",
+      "SK": "斯洛伐克语",
+      "SV": "瑞典语",
       "TIME_LOCALE": "时间格式区域",
       "TIME_LOCALE_AUTO": "系统默认",
       "TIME_LOCALE_CS_CZ": "捷克语：24小时制，日期格式 DD.MM.YYYY",
       "TIME_LOCALE_DE_DE": "德语：24小时制，日.月.年",
-      "TIME_LOCALE_DESCRIPTION": "设置整个应用中使用的日期格式和 12/24 小时制时间格式。“系统默认”会跟随浏览器的语言/地区——若要强制使用 12 或 24 小时制，请选择特定的区域设置。月份和星期的完整名称也会跟随此区域设置（例如，ISO 8601 会显示瑞典语名称）。",
+      "TIME_LOCALE_DESCRIPTION": "设置应用中日期和时间的显示方式。“系统默认”会跟随浏览器的语言和地区。若要固定使用 12 或 24 小时制，请选择具体区域设置。安排任务等时间输入框由浏览器或操作系统绘制，始终遵循其时钟格式。使用 ISO 8601 时，日程、习惯和规划页面中的星期名称遵循应用语言。",
       "TIME_LOCALE_EN_GB": "英式英语：24小时制，日期格式 日/月/年",
       "TIME_LOCALE_EN_US": "美式英语：12小时制（上午/下午），日期格式 月/日/年",
       "TIME_LOCALE_ES_ES": "西班牙语：24小时制，日期格式 日/月/年",
@@ -2768,14 +2783,14 @@
       "TIME_LOCALE_UK_UA": "乌克兰语：24小时制，日期格式 DD.MM.YYYY",
       "TIME_LOCALE_ZH_CN": "简体中文：24小时制，日期格式 年/月/日",
       "TITLE": "本地化",
-      "TR": "Türkçe",
+      "TR": "土耳其语",
       "UK": "Українська",
-      "VI": "Tiếng Việt",
+      "VI": "越南语",
       "ZH": "中文(简体)",
       "ZH_TW": "中文(繁體)"
     },
     "MISC": {
-      "APPEARANCE": "Appearance",
+      "APPEARANCE": "外观",
       "DARK_MODE": "深色模式",
       "DARK_MODE_ARIA_LABEL": "深色模式选择",
       "DARK_MODE_DARK": "深色",
@@ -2819,7 +2834,8 @@
       "WALLPAPER": "壁纸",
       "WALLPAPER_BUTTON": "设置壁纸…",
       "WALLPAPER_DIALOG_TITLE": "全局壁纸",
-      "WALLPAPER_HINT": "显示在没有自定义背景的页面上（规划器、日程、看板、设置等）。拥有自定义图片的标签和项目会覆盖此壁纸。"
+      "WALLPAPER_HINT": "显示在没有自定义背景的页面上（规划器、日程、看板、设置等）。拥有自定义图片的标签和项目会覆盖此壁纸。",
+      "THEME_DEFAULT": "默认"
     },
     "POMODORO": {
       "BREAK_DURATION": "短休息持续时间",
@@ -2851,8 +2867,8 @@
       "LUNCH_BREAK_START_END_DESCRIPTION": "如 13:00",
       "MONTH": "月",
       "TITLE": "计划",
-      "WORK_END_DESCRIPTION": "e.g. 17:00",
-      "WORK_START_DESCRIPTION": "e.g. 9:00"
+      "WORK_END_DESCRIPTION": "例如 17:00",
+      "WORK_START_DESCRIPTION": "例如 9:00"
     },
     "SHORT_SYNTAX": {
       "HELP": "<p>在这里，您可以在创建任务时控制短语法选项</p>",
@@ -2897,9 +2913,9 @@
       "IS_MARKDOWN_FORMATTING_IN_NOTES_ENABLED": "在任务笔记中启用Markdown格式",
       "IS_TRAY_SHOW_CURRENT": "在托盘/状态菜单中显示当前任务（仅限桌面Mac/Windows）",
       "NOTES_TEMPLATE": "任务描述模板",
-      "PRIORITY_ICON_PRESET": "Priority icons",
-      "PRIORITY_ICON_PRESET_CHEVRONS": "Chevrons",
-      "PRIORITY_ICON_PRESET_NUMBERS": "Numbers",
+      "PRIORITY_ICON_PRESET": "优先级图标",
+      "PRIORITY_ICON_PRESET_CHEVRONS": "尖括号",
+      "PRIORITY_ICON_PRESET_NUMBERS": "数字",
       "TITLE": "任务"
     },
     "TIME_TRACKING": {
@@ -2948,7 +2964,7 @@
     }
   },
   "GLOBAL_SNACK": {
-    "ACTION_REJECTED": "That change hit an internal error and was not applied. Nothing was lost; if it keeps happening, please reload.",
+    "ACTION_REJECTED": "发生内部错误，更改未能应用。数据没有丢失；如果问题持续出现，请重新加载应用。",
     "COPY_TO_CLIPPBOARD": "已复制到剪贴板",
     "DUPLICATE_PROJECT_ERROR": "该项目无法克隆",
     "DUPLICATE_PROJECT_SUCCESS": "项目克隆成功",
@@ -2972,11 +2988,11 @@
   },
   "HEATMAP": {
     "DAY_TOOLTIP": {
-      "ONE": "{{date}}: {{taskCount}} task, {{timeSpent}}",
-      "OTHER": "{{date}}: {{taskCount}} tasks, {{timeSpent}}"
+      "ONE": "{{date}}：{{taskCount}} 个任务，{{timeSpent}}",
+      "OTHER": "{{date}}：{{taskCount}} 个任务，{{timeSpent}}"
     },
-    "LEGEND_LESS": "Less",
-    "LEGEND_MORE": "More"
+    "LEGEND_LESS": "较少",
+    "LEGEND_MORE": "较多"
   },
   "MH": {
     "ADD_NEW_TASK": "添加新任务",
@@ -3074,9 +3090,9 @@
     "HINTS": {
       "CREATE_TASK": "点击 + 添加你的第一个任务",
       "CREATE_TASK_TOUCH": "点按 + 添加你的第一个任务",
-      "DONE_TITLE": "You're all set",
-      "EXPLORE_INBOX": "Some optional tips are waiting in your Inbox. Try them or delete them, whenever you like.",
-      "GOT_IT": "Got it",
+      "DONE_TITLE": "一切就绪",
+      "EXPLORE_INBOX": "收件箱里有一些可选提示。你可以随时尝试，也可以删除。",
+      "GOT_IT": "知道了",
       "TASK_SWIPE_LEFT_TOUCH": "向左滑动任务以查看更多操作",
       "TASK_SWIPE_RIGHT_TOUCH": "向右滑动任务以将其标记为完成",
       "OR_PRESS": "或按",
@@ -3139,7 +3155,7 @@
       "TOKEN_HELP": "在 Plainspace 上创建 API 令牌，然后粘贴到下方。",
       "TOKEN_LABEL": "API 令牌",
       "TOKEN_PLACEHOLDER": "pat_…",
-      "UNREACHABLE": "Couldn't reach Plainspace. Check your internet connection and the host, then try again."
+      "UNREACHABLE": "无法连接到 Plainspace。请检查网络连接和主机地址，然后重试。"
     },
     "FORM": {
       "HOST": "Plainspace 主机地址",
@@ -3223,12 +3239,12 @@
     "MENU_ENTRY_ICON_STRING": "菜单项图标必须为字符串",
     "MENU_ENTRY_LABEL_REQUIRED": "菜单项标签为必填",
     "MENU_ENTRY_ONCLICK_REQUIRED": "菜单项点击处理函数为必填",
-    "TASK_CONTEXT_MENU_ACTIONS": "Plugin actions",
-    "TASK_CONTEXT_MENU_ENTRY_ID_INVALID": "Task context menu entry ID must match [a-z0-9][a-z0-9_-]{0,63}",
-    "TASK_CONTEXT_MENU_ENTRY_LABEL_INVALID": "Task context menu entry label must be 1-{{maxLength}} characters",
-    "TASK_CONTEXT_MENU_ENTRY_ICON_INVALID": "Task context menu entry icon must be a Material icon name",
-    "TASK_CONTEXT_MENU_ENTRY_ONCLICK_REQUIRED": "Task context menu entry onClick handler is required",
-    "TASK_CONTEXT_MENU_ENTRY_TARGET_INVALID": "Task context menu entry showFor must contain TASK or SUBTASK",
+    "TASK_CONTEXT_MENU_ACTIONS": "插件操作",
+    "TASK_CONTEXT_MENU_ENTRY_ID_INVALID": "任务上下文菜单项 ID 必须符合 [a-z0-9][a-z0-9_-]{0,63} 格式",
+    "TASK_CONTEXT_MENU_ENTRY_LABEL_INVALID": "任务上下文菜单项标签长度必须为 1 到 {{maxLength}} 个字符",
+    "TASK_CONTEXT_MENU_ENTRY_ICON_INVALID": "任务上下文菜单项图标必须是 Material 图标名称",
+    "TASK_CONTEXT_MENU_ENTRY_ONCLICK_REQUIRED": "必须提供任务上下文菜单项的 onClick 处理函数",
+    "TASK_CONTEXT_MENU_ENTRY_TARGET_INVALID": "任务上下文菜单项的 showFor 必须包含 TASK 或 SUBTASK",
     "MIN_VERSION": "最低版本：",
     "NO_ADDITIONAL_INFO": "无其他可用信息",
     "NO_CONTENT_PROVIDED": "未提供内容",
@@ -3244,7 +3260,7 @@
     "PLEASE_SELECT_ZIP_FILE": "请选择一个 ZIP 文件",
     "PLUGIN_DIALOG_TITLE": "插件消息",
     "PLUGIN_ID_RESERVED": "插件 ID“{{pluginId}}”已保留给内置插件",
-    "PLUGIN_INSTALLED": "Plugin \"{{name}}\" installed",
+    "PLUGIN_INSTALLED": "插件“{{name}}”已安装",
     "PLUGIN_JS_NOT_FOUND": "ZIP 文件中未找到插件 JavaScript 文件（plugin.js）",
     "PROJECT_DOES_NOT_EXIST": "项目不存在",
     "PROJECT_NOT_FOUND": "未找到项目“{{contextId}}”",
@@ -3311,7 +3327,8 @@
     },
     "TAG_SETTINGS": "标签特定设置",
     "TOGGLE_DARK_MODE": "切换深色模式",
-    "UPDATE_APP": "更新应用"
+    "UPDATE_APP": "更新应用",
+    "CHANGELOG": "更新日志"
   },
   "SCHEDULE": {
     "LAST": "上一个：",
