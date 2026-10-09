@@ -1,0 +1,461 @@
+<section class="journal-page">
+  <header class="journal-heading">
+    <h1><mat-icon>book</mat-icon> {{ T.F.JOURNAL.TITLE | translate }}</h1>
+    <div class="date-navigation">
+      <button
+        mat-icon-button
+        (click)="navigate(-1)"
+        [attr.aria-label]="T.F.JOURNAL.PREVIOUS | translate"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <input
+        type="date"
+        [ngModel]="day()"
+        (ngModelChange)="changeDay($event)"
+        [attr.aria-label]="T.F.JOURNAL.DATE | translate"
+      />
+      <button
+        mat-icon-button
+        (click)="navigate(1)"
+        [attr.aria-label]="T.F.JOURNAL.NEXT | translate"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button
+        mat-button
+        (click)="today()"
+      >
+        {{ T.F.JOURNAL.TODAY | translate }}
+      </button>
+    </div>
+  </header>
+  <div class="period-controls">
+    <button
+      mat-button
+      [class.selected]="period() === 'day'"
+      (click)="setPeriod('day')"
+    >
+      {{ T.F.JOURNAL.DAY | translate }}
+    </button>
+    <button
+      mat-button
+      [class.selected]="period() === 'week'"
+      (click)="setPeriod('week')"
+    >
+      {{ T.F.JOURNAL.WEEK | translate }}
+    </button>
+    <button
+      mat-button
+      [class.selected]="period() === 'month'"
+      (click)="setPeriod('month')"
+    >
+      {{ T.F.JOURNAL.MONTH | translate }}
+    </button>
+    <span
+      >{{ days()[0] }}
+      @if (days().length > 1) {
+        — {{ days().at(-1) }}
+      }
+    </span>
+    <button
+      mat-button
+      (click)="exportMarkdown()"
+    >
+      <mat-icon>download</mat-icon>{{ T.F.JOURNAL.EXPORT | translate }}
+    </button>
+  </div>
+  <div class="summary">
+    <div>
+      <span>{{ T.F.JOURNAL.RECORDED | translate }}</span
+      ><strong
+        >{{ (actual().total / 60).toFixed(1) }}
+        {{ T.F.JOURNAL.HOURS | translate }}</strong
+      >
+    </div>
+    <div>
+      <span>{{ T.F.JOURNAL.UNRECORDED | translate }}</span
+      ><strong
+        >{{ (unrecorded() / 60).toFixed(1) }} {{ T.F.JOURNAL.HOURS | translate }}</strong
+      >
+    </div>
+    <div>
+      <span>{{ T.F.JOURNAL.PLANNED | translate }}</span
+      ><strong
+        >{{ (planned().total / 60).toFixed(1) }}
+        {{ T.F.JOURNAL.HOURS | translate }}</strong
+      >
+    </div>
+  </div>
+
+  @if (categoryDraft; as categories) {
+    <section class="panel category-editor">
+      <h2>{{ T.F.JOURNAL.CATEGORIES | translate }}</h2>
+      @for (category of categories; track category.id) {
+        <div class="category-field">
+          <input
+            type="color"
+            [(ngModel)]="category.color"
+            [attr.aria-label]="T.F.JOURNAL.COLOR | translate"
+          /><input
+            [(ngModel)]="category.name"
+            [attr.aria-label]="T.F.JOURNAL.CATEGORY | translate"
+            maxlength="60"
+          />
+        </div>
+      }
+      <div class="actions">
+        <button
+          mat-button
+          (click)="addCategory()"
+        >
+          {{ T.F.JOURNAL.ADD_CATEGORY | translate }}</button
+        ><button
+          mat-button
+          (click)="categoryDraft = null"
+        >
+          {{ T.G.CANCEL | translate }}</button
+        ><button
+          mat-flat-button
+          (click)="saveCategories()"
+        >
+          {{ T.G.SAVE | translate }}
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (editor(); as draft) {
+    <section class="panel activity-editor">
+      <h2>{{ T.F.JOURNAL.RECORD_ACTIVITY | translate }}</h2>
+      <form (ngSubmit)="saveActivity()">
+        <label for="journal-activity-title">{{ T.F.JOURNAL.ACTIVITY | translate }}</label>
+        <input
+          id="journal-activity-title"
+          name="title"
+          [(ngModel)]="draft.title"
+          required
+          maxlength="300"
+        />
+        <div class="form-grid">
+          <div>
+            <label for="journal-start">{{ T.F.JOURNAL.START | translate }}</label
+            ><input
+              id="journal-start"
+              name="start"
+              [(ngModel)]="draft.start"
+              required
+              pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+              placeholder="09:00"
+            />
+          </div>
+          <div>
+            <label for="journal-end">{{ T.F.JOURNAL.END | translate }}</label
+            ><input
+              id="journal-end"
+              name="end"
+              [(ngModel)]="draft.end"
+              required
+              pattern="([01][0-9]|2[0-3]):[0-5][0-9]|24:00"
+              placeholder="10:00 / 24:00"
+            />
+          </div>
+          <div>
+            <label for="journal-category">{{ T.F.JOURNAL.CATEGORY | translate }}</label
+            ><select
+              id="journal-category"
+              name="category"
+              [(ngModel)]="draft.categoryId"
+            >
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label for="journal-kind">{{ T.F.JOURNAL.KIND | translate }}</label
+            ><select
+              id="journal-kind"
+              name="kind"
+              [(ngModel)]="draft.kind"
+            >
+              <option value="actual">{{ T.F.JOURNAL.ACTUAL | translate }}</option>
+              <option value="plan">{{ T.F.JOURNAL.PLAN | translate }}</option>
+            </select>
+          </div>
+        </div>
+        <label for="journal-activity-note">{{ T.F.JOURNAL.NOTE | translate }}</label
+        ><textarea
+          id="journal-activity-note"
+          name="note"
+          [(ngModel)]="draft.note"
+          rows="2"
+        ></textarea>
+        <p class="help">{{ T.F.JOURNAL.TIME_HELP | translate }}</p>
+        @if (error()) {
+          <p
+            class="error"
+            role="alert"
+          >
+            {{ error() }}
+          </p>
+        }
+        <div class="actions">
+          <button
+            type="button"
+            mat-button
+            (click)="editor.set(null)"
+          >
+            {{ T.G.CANCEL | translate }}</button
+          ><button
+            type="submit"
+            mat-flat-button
+          >
+            {{ T.G.SAVE | translate }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <div class="journal-layout">
+    <section class="panel">
+      @if (period() === 'day') {
+        <div class="activity-controls">
+          <button
+            mat-button
+            [class.selected]="kind() === 'actual'"
+            (click)="kind.set('actual')"
+          >
+            {{ T.F.JOURNAL.ACTUAL | translate }}
+          </button>
+          <button
+            mat-button
+            [class.selected]="kind() === 'plan'"
+            (click)="kind.set('plan')"
+          >
+            {{ T.F.JOURNAL.PLAN | translate }}
+          </button>
+          <button
+            mat-flat-button
+            (click)="editActivity()"
+          >
+            <mat-icon>add</mat-icon>{{ T.F.JOURNAL.RECORD_ACTIVITY | translate }}
+          </button>
+        </div>
+        <div class="view-controls">
+          <button
+            mat-button
+            [class.selected]="view() === 'timeline'"
+            (click)="view.set('timeline')"
+          >
+            {{ T.F.JOURNAL.TIMELINE | translate }}
+          </button>
+          <button
+            mat-button
+            [class.selected]="view() === 'list'"
+            (click)="view.set('list')"
+          >
+            {{ T.F.JOURNAL.LIST | translate }}
+          </button>
+          <button
+            mat-button
+            [class.selected]="view() === 'compare'"
+            (click)="view.set('compare')"
+          >
+            {{ T.F.JOURNAL.COMPARE | translate }}
+          </button>
+        </div>
+        @if (rows().length === 0) {
+          <p class="help">{{ T.F.JOURNAL.EMPTY | translate }}</p>
+        }
+        @if (view() === 'list') {
+          @for (activity of rows(); track activity.id) {
+            <article
+              class="activity-row"
+              [style.border-left-color]="activity.color"
+            >
+              <div>
+                <small
+                  >{{ activity.startLabel }}—{{ activity.endLabel }} ·
+                  {{ activity.hours }} {{ T.F.JOURNAL.HOURS | translate }}</small
+                ><strong>{{ activity.title }}</strong
+                ><small>{{ activity.categoryName }}</small>
+                @if (activity.note) {
+                  <p>{{ activity.note }}</p>
+                }
+              </div>
+              <div class="actions">
+                <button
+                  mat-button
+                  (click)="editActivity(activity)"
+                >
+                  {{ T.F.JOURNAL.EDIT | translate }}</button
+                ><button
+                  mat-button
+                  (click)="removeActivity(activity)"
+                >
+                  {{ T.F.JOURNAL.DELETE | translate }}
+                </button>
+                @if (activity.kind === 'plan') {
+                  <button
+                    mat-button
+                    (click)="editActivity(activity, true)"
+                  >
+                    {{ T.F.JOURNAL.COPY_ACTUAL | translate }}</button
+                  ><button
+                    mat-button
+                    (click)="createTask(activity)"
+                    [disabled]="!!activity.taskId"
+                  >
+                    {{
+                      (activity.taskId
+                        ? T.F.JOURNAL.TASK_CREATED
+                        : T.F.JOURNAL.CREATE_TASK
+                      ) | translate
+                    }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        } @else {
+          @if (view() === 'compare') {
+            <div class="compare-head">
+              <span>{{ T.F.JOURNAL.PLAN | translate }}</span
+              ><span>{{ T.F.JOURNAL.ACTUAL | translate }}</span>
+            </div>
+          }
+          <div class="timeline-scroll">
+            <div
+              class="timeline"
+              [class.comparing]="view() === 'compare'"
+            >
+              @for (tick of ticks; track tick.top) {
+                <div
+                  class="tick"
+                  [style.top.px]="tick.top"
+                >
+                  <span>{{ tick.label }}</span>
+                </div>
+              }
+              @for (activity of rows(); track activity.id) {
+                <button
+                  class="time-block"
+                  [class.plan-lane]="activity.kind === 'plan'"
+                  [class.actual-lane]="activity.kind === 'actual'"
+                  [style.top.px]="activity.top"
+                  [style.height.px]="activity.height"
+                  [style.border-left-color]="activity.color"
+                  [style.background-color]="
+                    'color-mix(in srgb, ' + activity.color + ' 20%, var(--card-bg))'
+                  "
+                  (click)="editActivity(activity)"
+                  [title]="
+                    activity.startLabel + '—' + activity.endLabel + ' ' + activity.title
+                  "
+                >
+                  <strong>{{ activity.title }}</strong>
+                  @if (activity.height >= 42) {
+                    <small>{{ activity.startLabel }}—{{ activity.endLabel }}</small>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+      } @else {
+        <h2>{{ T.F.JOURNAL.OVERVIEW | translate }}</h2>
+        <p class="help">{{ T.F.JOURNAL.OVERVIEW_HELP | translate }}</p>
+        @for (row of overview(); track row.day) {
+          <div class="overview-row">
+            <button
+              mat-button
+              (click)="openDay(row.day)"
+            >
+              {{ row.day.slice(5) }}
+            </button>
+            <div class="overview-bar">
+              @for (segment of row.segments; track segment.id) {
+                <span
+                  [style.left.%]="segment.start"
+                  [style.width.%]="segment.width"
+                  [style.background-color]="segment.color"
+                  [title]="segment.title"
+                ></span>
+              }
+            </div>
+            <small>{{ row.hours }} h</small>
+          </div>
+          @if (row.notes) {
+            <details>
+              <summary>{{ row.day }} · {{ T.F.JOURNAL.DAY | translate }}</summary>
+              <p class="daily-notes">{{ row.notes }}</p>
+            </details>
+          }
+        }
+      }
+    </section>
+    <aside class="journal-side">
+      <section class="panel">
+        <div class="panel-title">
+          <h2>{{ T.F.JOURNAL.DISTRIBUTION | translate }}</h2>
+          <button
+            mat-icon-button
+            (click)="editCategories()"
+            [attr.aria-label]="T.F.JOURNAL.CATEGORIES | translate"
+          >
+            <mat-icon>palette</mat-icon>
+          </button>
+        </div>
+        @for (category of distribution(); track category.id) {
+          <div class="distribution">
+            <div>
+              <span
+                ><i [style.background-color]="category.color"></i
+                >{{ category.name }}</span
+              ><small>{{ category.hours }} h</small>
+            </div>
+            <div class="bar">
+              <span
+                [style.width.%]="category.percent"
+                [style.background-color]="category.color"
+              ></span>
+            </div>
+          </div>
+        }
+        <p class="help">{{ T.F.JOURNAL.UNRECORDED_HELP | translate }}</p>
+      </section>
+      <section class="panel">
+        <h2>{{ periodLabels[period()] | translate }}</h2>
+        <label for="journal-text">{{ T.F.JOURNAL.REFLECTION | translate }}</label
+        ><textarea
+          id="journal-text"
+          [(ngModel)]="text"
+          (ngModelChange)="dirty.set(true)"
+          rows="7"
+        ></textarea>
+        <label for="journal-plan">{{ planningLabels[period()] | translate }}</label
+        ><textarea
+          id="journal-plan"
+          [(ngModel)]="plan"
+          (ngModelChange)="dirty.set(true)"
+          rows="5"
+        ></textarea>
+        <div class="actions">
+          <small>{{
+            (dirty() ? T.F.JOURNAL.UNSAVED : T.F.JOURNAL.SAVED) | translate
+          }}</small
+          ><button
+            mat-flat-button
+            (click)="saveJournal()"
+            [disabled]="!dirty()"
+          >
+            {{ T.F.JOURNAL.SAVE_JOURNAL | translate }}
+          </button>
+        </div>
+        <p class="help">{{ T.F.JOURNAL.STORAGE_HELP | translate }}</p>
+      </section>
+    </aside>
+  </div>
+</section>

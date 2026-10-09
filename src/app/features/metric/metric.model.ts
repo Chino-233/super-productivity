@@ -1,6 +1,7 @@
 import { EntityState } from '@ngrx/entity';
 // import { Label, SingleDataSet } from 'ng2-charts';
 import { ChartData } from 'chart.js';
+import { JournalActivity, JournalPeriodEntry } from '../journal/journal.model';
 
 export interface ReflectionEntry {
   text: string;
@@ -17,6 +18,13 @@ export interface MetricCopy {
   notes?: string | null;
   remindTomorrow?: boolean;
   reflections?: ReflectionEntry[];
+
+  // Optional so existing metrics remain valid without a migration.
+  journalActivities?: JournalActivity[];
+  journalPlan?: string;
+  // Period entries live on their first calendar day (Monday / first of month).
+  journalWeekly?: JournalPeriodEntry;
+  journalMonthly?: JournalPeriodEntry;
 
   // v2.4 Productivity scoring fields (impact-driven)
   impactOfWork?: number | null; // 1-4 scale

@@ -403,6 +403,14 @@ export class MagicNavConfigService {
   private _buildMainRoutesItems(): NavItem[] {
     const items: NavItem[] = [];
 
+    items.push({
+      type: 'route',
+      id: 'journal',
+      label: T.F.JOURNAL.TITLE,
+      icon: 'book',
+      route: '/journal',
+    });
+
     if (this.isPlannerEnabled()) {
       items.push({
         type: 'route',

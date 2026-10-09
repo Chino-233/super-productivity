@@ -38,6 +38,13 @@ export const APP_ROUTES: Routes = [
   },
   // Standalone pages — all import from same barrel so they share one chunk
   {
+    path: 'journal',
+    loadComponent: () =>
+      import('./features/journal/journal.component').then((m) => m.JournalComponent),
+    data: { page: 'journal' },
+    canActivate: [FocusOverlayOpenGuard],
+  },
+  {
     path: 'config',
     loadComponent: () =>
       import('./routes/pages.routes').then((m) => m.ConfigPageComponent),
