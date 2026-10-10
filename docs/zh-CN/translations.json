@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "sourceBranch": "master",
+  "entries": [
+    {
+      "source": "README.en.md",
+      "upstreamSource": "README.md",
+      "target": "README.md",
+      "sourceSha256": "a64b0a838b01477860c132029ba40daa36aea572adffa01df9e1e54200b7b8f5",
+      "translationSha256": "813f1f5ff88a13ba29f4f22187820ac1547056490814835682011fb8dc3fe2d6"
+    },
+    {
+      "source": "CONTRIBUTING.en.md",
+      "upstreamSource": "CONTRIBUTING.md",
+      "target": "CONTRIBUTING.md",
+      "sourceSha256": "36fa4bf4c85b10b8a4bfe16ffc569178ee56671b9da523093623a4bd7f419588",
+      "translationSha256": "24aa2fe2badfbca7e5509c9efaddf8fae22cb17efbfc4bdacac5b6f2cbbf2379"
+    },
+    {
+      "source": "docs/wiki/1.01-First-Steps.md",
+      "upstreamSource": "docs/wiki/1.01-First-Steps.md",
+      "target": "docs/zh-CN/wiki/1.01-First-Steps.md",
+      "sourceSha256": "11a9d343175d4eed5fcfae2a2389363763ca0a7f133e035f1bffc6f0bbb73085",
+      "translationSha256": "4d4487e14c31de4b76f427a826043e124b8d9df79b981d11efd0e6ec87471956"
+    },
+    {
+      "source": "docs/wiki/2.03-Add-Tasks.md",
+      "upstreamSource": "docs/wiki/2.03-Add-Tasks.md",
+      "target": "docs/zh-CN/wiki/2.03-Add-Tasks.md",
+      "sourceSha256": "cc1992016528b2356ab96d6201ae7c73e31875161966514f7595f6dc55c1ee53",
+      "translationSha256": "954d7ab2e37370a7e290977ac8644c62d71fafcdca2d254ec18fe98db0a63a6a"
+    },
+    {
+      "source": "docs/wiki/2.05-Manage-Scheduled-Tasks.md",
+      "upstreamSource": "docs/wiki/2.05-Manage-Scheduled-Tasks.md",
+      "target": "docs/zh-CN/wiki/2.05-Manage-Scheduled-Tasks.md",
+      "sourceSha256": "f3237d596343c74d2f3f0ad8c8672fcf5ddb447065296b12b964120b834e9a46",
+      "translationSha256": "5bcadaf0aeec876e03251c84d472ff8925c8e6bb78b22e4f566de153d6923556"
+    },
+    {
+      "source": "docs/wiki/3.02-Settings-and-Preferences.md",
+      "upstreamSource": "docs/wiki/3.02-Settings-and-Preferences.md",
+      "target": "docs/zh-CN/wiki/3.02-Settings-and-Preferences.md",
+      "sourceSha256": "aa1a0946f0b59db7f7b11fa58eb75e2abf4ab023dd79b5ce5e511f7f9bdf09b9",
+      "translationSha256": "7c93fa82d36992c31b8c1cfeb15ece1a2d1a2d109f84f27df71cdc0f51242c3d"
+    },
+    {
+      "source": "docs/wiki/3.06-User-Data.md",
+      "upstreamSource": "docs/wiki/3.06-User-Data.md",
+      "target": "docs/zh-CN/wiki/3.06-User-Data.md",
+      "sourceSha256": "d5ed26c0cfabac3adf9252f1fc87e69b4cc62fb02dbdd6ef553eb9645a7fa3e3",
+      "translationSha256": "ce8a473892f91bd0e24dc86a76fef46559410ba33957ec26cb59c2453484e698"
+    },
+    {
+      "source": "docs/wiki/3.10-Journal-and-Calendar.md",
+      "upstreamSource": "docs/wiki/3.10-Journal-and-Calendar.md",
+      "target": "docs/zh-CN/wiki/3.10-Journal-and-Calendar.md",
+      "sourceSha256": "0acd1e6dde7cf0e7cae264c6a686084e287175c01f6211bd8c4efa2e4f13ec3c",
+      "translationSha256": "988f239da88af0bdec88f3789c49493a32bd9cfe4df8c47895dfee18501691ef"
+    },
+    {
+      "source": "docs/wiki/4.03-Planner-View.md",
+      "upstreamSource": "docs/wiki/4.03-Planner-View.md",
+      "target": "docs/zh-CN/wiki/4.03-Planner-View.md",
+      "sourceSha256": "a0485c2a1b389fb98d18f29da81215bf496f81271ce29f0dd6e9d091201b5129",
+      "translationSha256": "7511a1804feed5f49aaee6b54b0ecd026114fa6aa082acb4a52a87cc56099498"
+    },
+    {
+      "source": "docs/wiki/4.04-Schedule-View.md",
+      "upstreamSource": "docs/wiki/4.04-Schedule-View.md",
+      "target": "docs/zh-CN/wiki/4.04-Schedule-View.md",
+      "sourceSha256": "70df8bd8c3325263c32753ffccfb2b57585931121c5a56029379ceb9b6e608a7",
+      "translationSha256": "f687f3623a6e838474aa3b1985769d1fe4eef45973348373377828bce85f641c"
+    },
+    {
+      "source": "docs/wiki/4.14-How-Time-Is-Logged.md",
+      "upstreamSource": "docs/wiki/4.14-How-Time-Is-Logged.md",
+      "target": "docs/zh-CN/wiki/4.14-How-Time-Is-Logged.md",
+      "sourceSha256": "1192653bf07b8be613c24a7bd86ab3528375ec99c7e2e0543e5e58947ab80cf4",
+      "translationSha256": "9813a7de234551411dd90daf25181e04876af45d56e5d1b8e5851f9a236b3894"
+    },
+    {
+      "source": "docs/wiki/4.18-Reflection.md",
+      "upstreamSource": "docs/wiki/4.18-Reflection.md",
+      "target": "docs/zh-CN/wiki/4.18-Reflection.md",
+      "sourceSha256": "4f69334ca49f3be5009f2e3040d47f79975120314c929ff3aa48c2b30aa4831e",
+      "translationSha256": "ad1b3d4445bd05d68ec6917d04a06c8dd6154a2f48ebcedb43c30104805c9ac4"
+    },
+    {
+      "source": "docs/wiki/Home.md",
+      "upstreamSource": "docs/wiki/Home.md",
+      "target": "docs/zh-CN/wiki/Home.md",
+      "sourceSha256": "449c60934892ed8b0ad13d0a4fc7dad82cf4e933260cd72f1fd0ea29c1a11f18",
+      "translationSha256": "57efd308618c8a3c8ba4836982df7b2e2c840d7c78e5ca03594bdc942e556c7b"
+    }
+  ]
+}
