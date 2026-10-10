@@ -6,11 +6,18 @@ import { GlobalConfigService } from '../config/global-config.service';
 import { TaskService } from '../tasks/task.service';
 import { Metric } from '../metric/metric.model';
 import { JournalActivity } from './journal.model';
+import { Task } from '../tasks/task.model';
+import { TaskArchiveService } from '../archive/task-archive.service';
+import { Store } from '@ngrx/store';
+import { TaskSharedActions } from '../../root-store/meta/task-shared.actions';
 
 describe('JournalService', () => {
   let service: JournalService;
   let updateMetric: jasmine.Spy;
   let tasks: jasmine.Spy;
+  let taskChanges: jasmine.Spy;
+  let activeTasks: BehaviorSubject<Task[]>;
+  let dispatch: jasmine.Spy;
   const initialActivity: JournalActivity = {
     id: 'a',
     title: 'Work',
@@ -23,6 +30,9 @@ describe('JournalService', () => {
   beforeEach(() => {
     updateMetric = jasmine.createSpy('updateMetric');
     tasks = jasmine.createSpy('add').and.returnValue('task-created');
+    taskChanges = jasmine.createSpy('update');
+    dispatch = jasmine.createSpy('dispatch');
+    activeTasks = new BehaviorSubject<Task[]>([]);
     TestBed.configureTestingModule({
       providers: [
         JournalService,
@@ -47,7 +57,21 @@ describe('JournalService', () => {
             updateSection: jasmine.createSpy('updateSection'),
           },
         },
-        { provide: TaskService, useValue: { add: tasks } },
+        {
+          provide: TaskService,
+          useValue: {
+            add: tasks,
+            update: taskChanges,
+            allTasks$: activeTasks,
+            currentTask$: new BehaviorSubject(null),
+            setCurrentId: jasmine.createSpy('setCurrentId'),
+          },
+        },
+        {
+          provide: TaskArchiveService,
+          useValue: { load: () => Promise.resolve({ ids: [], entities: {} }) },
+        },
+        { provide: Store, useValue: { dispatch } },
       ],
     });
     service = TestBed.inject(JournalService);
@@ -93,18 +117,23 @@ describe('JournalService', () => {
     });
   });
 
-  it('creates a normal application task for a plan and retains the activity link', () => {
+  it('converts a manual plan to a native timed task without keeping a duplicate plan', () => {
     service.createTask('2026-10-09', { ...initialActivity, id: 'plan', kind: 'plan' });
     expect(tasks).toHaveBeenCalledWith(
       'Work',
       false,
-      jasmine.objectContaining({ dueDay: '2026-10-09', timeEstimate: 3600000 }),
+      jasmine.objectContaining({
+        dueDay: null,
+        dueWithTime: new Date('2026-10-09T09:00:00').getTime(),
+        timeEstimate: 3600000,
+        journalCategoryId: 'work',
+      }),
       false,
       true,
     );
-    expect(updateMetric.calls.mostRecent().args[1].journalActivities[1].taskId).toBe(
-      'task-created',
-    );
+    expect(updateMetric.calls.mostRecent().args[1].journalActivities).toEqual([
+      initialActivity,
+    ]);
     tasks.calls.reset();
     service.createTask('2026-10-09', {
       ...initialActivity,
@@ -112,5 +141,98 @@ describe('JournalService', () => {
       taskId: 'existing',
     });
     expect(tasks).not.toHaveBeenCalled();
+  });
+
+  it('derives a calendar plan from the current task rather than copying its name or schedule', () => {
+    const task = {
+      id: 'native',
+      title: 'Original',
+      dueWithTime: new Date('2026-10-09T12:00:00').getTime(),
+      timeEstimate: 1800000,
+      journalCategoryId: 'study',
+      timeSpentOnDay: {},
+      subTaskIds: [],
+    } as unknown as Task;
+    activeTasks.next([task]);
+    expect(service.activitiesByDay()['2026-10-09'][1]).toEqual(
+      jasmine.objectContaining({
+        id: 'task:native',
+        title: 'Original',
+        start: 720,
+        end: 750,
+      }),
+    );
+    activeTasks.next([
+      {
+        ...task,
+        title: 'Renamed',
+        dueWithTime: new Date('2026-10-10T13:15:00').getTime(),
+      },
+    ]);
+    expect(service.activitiesByDay()['2026-10-09']).toEqual([initialActivity]);
+    expect(service.activitiesByDay()['2026-10-10'][0]).toEqual(
+      jasmine.objectContaining({ title: 'Renamed', start: 795, end: 825 }),
+    );
+  });
+
+  it('updates the original task in one task patch and does not write a duplicate metric activity', () => {
+    activeTasks.next([
+      {
+        id: 'native',
+        title: 'Task',
+        dueWithTime: new Date('2026-10-09T12:00:00').getTime(),
+        timeEstimate: 1800000,
+        timeSpentOnDay: {},
+      } as unknown as Task,
+    ]);
+    const plan = service.activitiesByDay()['2026-10-09'][1];
+    expect(
+      service.saveActivity('2026-10-09', {
+        ...plan,
+        start: 750,
+        end: 795,
+        title: 'Updated',
+      }),
+    ).toBeNull();
+    expect(taskChanges).toHaveBeenCalledWith(
+      'native',
+      jasmine.objectContaining({
+        title: 'Updated',
+        timeEstimate: 2700000,
+        dueWithTime: new Date('2026-10-09T12:30:00').getTime(),
+        dueDay: null,
+      }),
+    );
+    expect(updateMetric).not.toHaveBeenCalled();
+  });
+
+  it('cancels a calendar task schedule through the original unschedule action without deleting the task', () => {
+    service.removeActivity('2026-10-09', 'task:native');
+    expect(dispatch).toHaveBeenCalledWith(
+      TaskSharedActions.unscheduleTask({ id: 'native' }),
+    );
+    expect(updateMetric).not.toHaveBeenCalled();
+  });
+
+  it('stores customized common activities in the existing configuration section, including an empty list', () => {
+    const config = TestBed.inject(GlobalConfigService);
+    service.saveTemplates([
+      { id: 'dog', title: 'Walk the dog', duration: 45, categoryId: 'life' },
+    ]);
+    expect(config.updateSection).toHaveBeenCalledWith(
+      'misc',
+      {
+        journalActivityTemplates: [
+          { id: 'dog', title: 'Walk the dog', duration: 45, categoryId: 'life' },
+        ],
+      },
+      true,
+    );
+    service.saveTemplates([]);
+    expect(config.updateSection).toHaveBeenCalledWith(
+      'misc',
+      { journalActivityTemplates: [] },
+      true,
+    );
   });
 });

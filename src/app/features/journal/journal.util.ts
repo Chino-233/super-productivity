@@ -43,7 +43,14 @@ export const journalTime = (minutes: number): string =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
 export type JournalActivityError =
-  | { code: 'TITLE_REQUIRED' | 'INVALID_TIME' | 'INVALID_CATEGORY' }
+  | {
+      code:
+        | 'TITLE_REQUIRED'
+        | 'INVALID_TIME'
+        | 'INVALID_CATEGORY'
+        | 'INVALID_SLOT'
+        | 'TASK_UNAVAILABLE';
+    }
   | { code: 'OVERLAP'; title: string; start: string; end: string };
 
 export const validateJournalActivity = (
@@ -66,6 +73,12 @@ export const validateJournalActivity = (
     !['actual', 'plan'].includes(activity.kind)
   )
     return { code: 'INVALID_CATEGORY' };
+  const previous = existing.find((entry) => entry.id === activity.id);
+  if (
+    (activity.start % 15 || activity.end % 15) &&
+    !(previous?.start === activity.start && previous?.end === activity.end)
+  )
+    return { code: 'INVALID_SLOT' };
   const overlap = existing.find(
     (entry) =>
       entry.id !== activity.id &&

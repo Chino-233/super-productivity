@@ -1,0 +1,126 @@
+<p class="calendar-help">{{ T.F.JOURNAL.CALENDAR_HELP | translate }}</p>
+<div
+  class="lane-head"
+  [class.comparing]="comparing()"
+>
+  @for (lane of lanes(); track lane) {
+    <span>{{
+      (lane === 'plan' ? T.F.JOURNAL.PLAN : T.F.JOURNAL.ACTUAL) | translate
+    }}</span>
+  }
+</div>
+<div
+  #scroll
+  class="calendar-scroll"
+>
+  <div
+    #grid
+    class="calendar-grid"
+    [class.comparing]="comparing()"
+    (pointermove)="move($event)"
+    (pointerup)="finish($event)"
+    (pointercancel)="cancel()"
+    (lostpointercapture)="cancel()"
+    (keydown.escape)="cancel()"
+  >
+    <div
+      class="time-labels"
+      aria-hidden="true"
+    >
+      @for (slot of slots; track slot.minute) {
+        <span [class.hour]="slot.hour">{{
+          slot.hour || slot.minute % 30 === 0 ? slot.label : ''
+        }}</span>
+      }
+      <span>24:00</span>
+    </div>
+    @for (lane of lanes(); track lane) {
+      <div
+        class="calendar-lane"
+        [class.plan-lane]="lane === 'plan'"
+        [class.actual-lane]="lane === 'actual'"
+      >
+        @for (slot of slots; track slot.minute) {
+          <button
+            type="button"
+            class="calendar-slot"
+            [class.hour]="slot.hour"
+            [attr.aria-label]="
+              (T.F.JOURNAL.RECORD_ACTIVITY | translate) +
+              ' ' +
+              slot.label +
+              '—' +
+              slot.end +
+              ' · ' +
+              ((lane === 'plan' ? T.F.JOURNAL.PLAN : T.F.JOURNAL.ACTUAL) | translate)
+            "
+            [attr.data-minute]="slot.minute"
+            [attr.data-kind]="lane"
+            (pointerdown)="beginSelection($event, slot.minute, lane)"
+            (click)="keyboardSelect($event, slot.minute, lane)"
+          ></button>
+        }
+        @for (activity of blocks(); track activity.id) {
+          @if (activity.kind === lane) {
+            <article
+              class="calendar-block"
+              [class.dragging]="gesture()?.activity?.id === activity.id"
+              [style.top.px]="activity.top"
+              [style.height.px]="activity.height"
+              [style.left.%]="activity.left"
+              [style.right.%]="activity.right"
+              [style.border-left-color]="activity.color"
+              [style.background-color]="
+                'color-mix(in srgb, ' + activity.color + ' 24%, var(--card-bg))'
+              "
+            >
+              <button
+                type="button"
+                class="block-body"
+                [title]="activity.time + ' ' + activity.title"
+                (pointerdown)="beginActivity($event, activity, 'move')"
+                (click)="keyboardEdit($event, activity)"
+                (keydown)="keyboardAdjust($event, activity, 'move')"
+              >
+                <strong>{{ activity.title }}</strong>
+                @if (activity.height >= 48) {
+                  <small>{{ activity.time }}</small>
+                }
+              </button>
+              <button
+                type="button"
+                class="resize-handle resize-start"
+                [attr.aria-label]="
+                  (T.F.JOURNAL.ADJUST_START | translate) + ' · ' + activity.title
+                "
+                (pointerdown)="beginActivity($event, activity, 'start')"
+                (keydown)="keyboardAdjust($event, activity, 'start')"
+              ></button>
+              <button
+                type="button"
+                class="resize-handle resize-end"
+                [attr.aria-label]="
+                  (T.F.JOURNAL.ADJUST_END | translate) + ' · ' + activity.title
+                "
+                (pointerdown)="beginActivity($event, activity, 'end')"
+                (keydown)="keyboardAdjust($event, activity, 'end')"
+              ></button>
+            </article>
+          }
+        }
+        @if (preview(); as range) {
+          @if (range.kind === lane) {
+            <div
+              class="selection-preview"
+              [style.top.px]="(range.start / 15) * 24"
+              [style.height.px]="((range.end - range.start) / 15) * 24"
+              aria-live="polite"
+            >
+              {{ range.label }}
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -34,6 +34,10 @@
   <a href="https://youtu.be/_mvMXWLsL-8"><img src="docs/screens/reel.gif" alt="Super Productivity: capture a task, plan it on the schedule, then focus on it"/></a>
 </p>
 
+## Personal journal extension in this fork
+
+This fork adds daily, weekly and monthly journals to the original app. The daily calendar supports 15-minute activity records, dragging and resizing, plan/actual comparison and customizable common activities. Linked plans use the original tasks and schedules; reviews include original task time and the shared daily reflection. See the [Journal and Calendar guide](docs/wiki/3.10-Journal-and-Calendar.md).
+
 ## :computer: Downloads & Install
 
 <p align="center">

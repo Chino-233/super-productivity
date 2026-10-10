@@ -127,6 +127,8 @@ export interface TaskCopy
    */
   dueDay?: string | null;
   hasPlannedTime?: boolean;
+  /** Optional journal category; native task fields remain the source of scheduling. */
+  journalCategoryId?: string;
 
   /**
    * Deadline date as ISO string (YYYY-MM-DD). For deadlines without a specific time.

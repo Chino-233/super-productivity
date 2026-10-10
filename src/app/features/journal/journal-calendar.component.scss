@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+.calendar-help {
+  color: var(--text-color-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+.lane-head {
+  display: flex;
+  margin-left: 52px;
+  text-align: center;
+  padding: var(--s) 0;
+}
+.lane-head span {
+  flex: 1;
+}
+.calendar-scroll {
+  max-height: 650px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-top: var(--s);
+}
+.calendar-grid {
+  position: relative;
+  display: flex;
+  height: 2304px;
+  margin: 0 var(--s) var(--s3) 52px;
+  user-select: none;
+}
+.calendar-lane {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-right: 1px solid var(--separator-color);
+}
+.time-labels {
+  position: absolute;
+  left: -52px;
+  width: 48px;
+  top: 0;
+  color: var(--text-color-muted);
+  font-size: var(--font-size-sm);
+}
+.time-labels span {
+  display: block;
+  height: 24px;
+  transform: translateY(-50%);
+}
+.time-labels .hour {
+  color: var(--text-color);
+}
+.calendar-slot {
+  display: block;
+  height: 24px;
+  width: 100%;
+  border: 0;
+  border-top: 1px dashed var(--separator-color);
+  padding: 0;
+  background: transparent;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.calendar-slot.hour {
+  border-top-style: solid;
+}
+.calendar-slot:hover,
+.calendar-slot:focus-visible {
+  background: var(--hover-bg);
+}
+.calendar-block {
+  position: absolute;
+  margin: 0 var(--s-half);
+  border-left: 4px solid;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.calendar-block.dragging {
+  opacity: 0.45;
+}
+.block-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: var(--text-color);
+  padding: var(--s-half) var(--s);
+  cursor: grab;
+  touch-action: none;
+}
+.block-body strong,
+.block-body small {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.block-body small {
+  font-size: var(--font-size-sm);
+}
+.resize-handle {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  background: transparent;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.resize-handle:hover,
+.resize-handle:focus-visible {
+  background: var(--c-primary);
+}
+.resize-start {
+  top: 0;
+}
+.resize-end {
+  bottom: 0;
+}
+.selection-preview {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  border: 1px solid var(--c-primary);
+  background: color-mix(in srgb, var(--c-primary) 18%, var(--card-bg));
+  border-radius: var(--radius-sm);
+  color: var(--text-color);
+  font-size: var(--font-size-sm);
+  padding-left: var(--s);
+}

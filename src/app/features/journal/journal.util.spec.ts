@@ -22,6 +22,26 @@ const activity = (
 });
 
 describe('Journal utilities', () => {
+  it('requires new activities to use quarter-hours while keeping legacy ranges editable', () => {
+    const legacy = activity('old', 545, 575);
+    expect(validateJournalActivity(legacy, [], DEFAULT_JOURNAL_CATEGORIES)?.code).toBe(
+      'INVALID_SLOT',
+    );
+    expect(
+      validateJournalActivity(
+        { ...legacy, title: 'Renamed' },
+        [legacy],
+        DEFAULT_JOURNAL_CATEGORIES,
+      ),
+    ).toBeNull();
+    expect(
+      validateJournalActivity(
+        { ...legacy, start: 540, end: 570 },
+        [legacy],
+        DEFAULT_JOURNAL_CATEGORIES,
+      ),
+    ).toBeNull();
+  });
   it('accepts 24:00 only as a valid midnight endpoint', () => {
     expect(parseJournalTime('24:00')).toBe(1440);
     expect(parseJournalTime('09:05')).toBe(545);

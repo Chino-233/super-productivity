@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { A11yModule } from '@angular/cdk/a11y';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,8 +17,14 @@ import { DateService } from '../../core/date/date.service';
 import { T } from '../../t.const';
 import { download } from '../../util/download';
 import { JournalService } from './journal.service';
+import { ReflectionNoteComponent } from '../metric/reflection-note/reflection-note.component';
+import {
+  JournalCalendarComponent,
+  JournalCalendarSelection,
+} from './journal-calendar.component';
 import {
   JournalActivity,
+  JournalActivityTemplate,
   JournalActivityKind,
   JournalCategory,
   JournalPeriod,
@@ -46,7 +53,15 @@ interface ActivityDraft {
 @Component({
   selector: 'journal',
   standalone: true,
-  imports: [FormsModule, MatButtonModule, MatIconModule, TranslatePipe],
+  imports: [
+    FormsModule,
+    A11yModule,
+    MatButtonModule,
+    MatIconModule,
+    TranslatePipe,
+    JournalCalendarComponent,
+    ReflectionNoteComponent,
+  ],
   templateUrl: './journal.component.html',
   styleUrl: './journal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,8 +85,54 @@ export class JournalComponent implements OnDestroy {
       name: this._translate.instant(category.name),
     }));
   });
+  readonly templates = computed(() => {
+    this._language();
+    const entries = this.journal.templates();
+    return entries.map((template) => ({
+      ...template,
+      title: this._translate.instant(template.title),
+    }));
+  });
+  readonly periodTasks = computed(() => {
+    const days = new Set(this.days());
+    return this.journal
+      .tasks()
+      .filter((task) => {
+        if (task.subTaskIds.length) return false;
+        const due = task.dueWithTime
+          ? journalDate(new Date(task.dueWithTime))
+          : task.dueDay;
+        return (
+          (due && days.has(due)) ||
+          (task.doneOn && days.has(journalDate(new Date(task.doneOn)))) ||
+          this.days().some((day) => (task.timeSpentOnDay[day] ?? 0) > 0)
+        );
+      })
+      .map((task) => ({
+        task,
+        hours: (
+          this.days().reduce((sum, day) => sum + (task.timeSpentOnDay[day] ?? 0), 0) /
+          3600000
+        ).toFixed(2),
+        active: this.journal.activeTasks().some((entry) => entry.id === task.id),
+      }));
+  });
+  readonly taskTotals = computed(() => ({
+    completed: this.periodTasks().filter(
+      ({ task }) =>
+        task.isDone &&
+        (!task.doneOn || this.days().includes(journalDate(new Date(task.doneOn)))),
+    ).length,
+    hours:
+      this.periodTasks().reduce(
+        (sum, { task }) =>
+          sum +
+          this.days().reduce((total, day) => total + (task.timeSpentOnDay[day] ?? 0), 0),
+        0,
+      ) / 3600000,
+  }));
   readonly allActivities = computed(() =>
-    this.days().flatMap((day) => this.journal.byDay()[day]?.journalActivities ?? []),
+    this.days().flatMap((day) => this.journal.activitiesByDay()[day] ?? []),
   );
   readonly actual = computed(() => summarizeJournalActivities(this.allActivities()));
   readonly planned = computed(() =>
@@ -91,7 +152,7 @@ export class JournalComponent implements OnDestroy {
     })),
   );
   readonly rows = computed(() =>
-    (this.journal.byDay()[this.day()]?.journalActivities ?? [])
+    (this.journal.activitiesByDay()[this.day()] ?? [])
       .filter((activity) => this.view() === 'compare' || activity.kind === this.kind())
       .slice()
       .sort((a, b) => a.start - b.start)
@@ -114,11 +175,12 @@ export class JournalComponent implements OnDestroy {
   readonly overview = computed(() =>
     this.days().map((day) => {
       const metric = this.journal.byDay()[day];
-      const activities = metric?.journalActivities ?? [];
+      const activities = this.journal.activitiesByDay()[day] ?? [];
       return {
         day,
         hours: (summarizeJournalActivities(activities).total / 60).toFixed(1),
         notes: metric?.notes ?? '',
+        reflection: metric?.reflections?.[0]?.text ?? '',
         segments: activities
           .filter((a) => a.kind === 'actual')
           .map((a) => ({
@@ -151,6 +213,10 @@ export class JournalComponent implements OnDestroy {
   readonly error = signal('');
   readonly dirty = signal(false);
   categoryDraft: JournalCategory[] | null = null;
+  templateDraft: JournalActivityTemplate[] | null = null;
+  readonly templateError = signal('');
+  private _selectedRange: JournalCalendarSelection | null = null;
+  private _editedActivity: JournalActivity | null = null;
   text = '';
   plan = '';
   private _draftKey = '';
@@ -208,17 +274,121 @@ export class JournalComponent implements OnDestroy {
   }
 
   editActivity(activity?: JournalActivity, copy = false): void {
+    this._selectedRange = null;
+    this._editedActivity = copy ? null : (activity ?? null);
     this.error.set('');
     this.editor.set({
       id: copy || !activity ? this.journal.newId() : activity.id,
       title: activity?.title ?? '',
       start: journalTime(activity?.start ?? 540),
-      end: journalTime(activity?.end ?? 570),
+      end: journalTime(activity?.end ?? 555),
       categoryId: activity?.categoryId ?? this.categories()[0].id,
       kind: copy ? 'actual' : (activity?.kind ?? this.kind()),
       note: activity?.note ?? '',
-      ...(activity?.taskId && !copy ? { taskId: activity.taskId } : {}),
+      ...(activity?.taskId ? { taskId: activity.taskId } : {}),
     });
+  }
+
+  selectCalendar(range: JournalCalendarSelection): void {
+    this.editActivity();
+    this._selectedRange = range;
+    this.editor.update(
+      (draft) =>
+        draft && {
+          ...draft,
+          start: journalTime(range.start),
+          end: journalTime(range.end),
+          kind: range.kind,
+        },
+    );
+  }
+
+  changeCalendar(change: {
+    activity: JournalActivity;
+    start: number;
+    end: number;
+  }): void {
+    this.error.set('');
+    const error = this.journal.saveActivity(this.day(), {
+      ...change.activity,
+      start: change.start,
+      end: change.end,
+    });
+    if (error) this.error.set(this._translate.instant(T.F.JOURNAL[error.code], error));
+  }
+
+  useTemplate(template: JournalActivityTemplate): void {
+    if (!this.editor()) this.editActivity();
+    const draft = this.editor()!;
+    const start = parseJournalTime(draft.start);
+    this.editor.set({
+      ...draft,
+      title: template.title,
+      categoryId: this.categories().some((c) => c.id === template.categoryId)
+        ? template.categoryId
+        : this.categories()[0].id,
+      note: template.note ?? '',
+      end: journalTime(
+        this._selectedRange && this._selectedRange.end - this._selectedRange.start > 15
+          ? this._selectedRange.end
+          : Math.min(1440, start + template.duration),
+      ),
+    });
+  }
+
+  linkTask(taskId: string): void {
+    const task = this.journal.taskById()[taskId];
+    this.editor.update(
+      (draft) =>
+        draft && {
+          ...draft,
+          ...(task && draft.kind === 'plan' ? { id: `task:${task.id}` } : {}),
+          taskId: task?.id,
+          title: task?.title ?? draft.title,
+          note: draft.kind === 'plan' ? (task?.notes ?? '') : draft.note,
+          categoryId: task?.journalCategoryId ?? draft.categoryId,
+        },
+    );
+  }
+
+  editTemplates(): void {
+    this.templateError.set('');
+    this.templateDraft = this.templates().map((template) => ({ ...template }));
+  }
+
+  addTemplate(): void {
+    this.templateDraft?.push({
+      id: this.journal.newId(),
+      title: '',
+      categoryId: this.categories()[0].id,
+      duration: 30,
+    });
+  }
+
+  removeTemplate(id: string): void {
+    this.templateDraft = this.templateDraft?.filter((entry) => entry.id !== id) ?? null;
+  }
+
+  saveTemplates(): void {
+    if (!this.templateDraft) return;
+    if (
+      this.templateDraft.some(
+        (entry) =>
+          !entry.title.trim() ||
+          !Number.isInteger(entry.duration) ||
+          entry.duration < 15 ||
+          entry.duration > 1440 ||
+          entry.duration % 15 ||
+          !this.categories().some((c) => c.id === entry.categoryId),
+      )
+    ) {
+      this.templateError.set(this._translate.instant(T.F.JOURNAL.TEMPLATE_INVALID));
+      return;
+    }
+    this.journal.saveTemplates(
+      this.templateDraft.map((entry) => ({ ...entry, title: entry.title.trim() })),
+    );
+    this.templateDraft = null;
   }
 
   saveActivity(): void {
@@ -226,6 +396,10 @@ export class JournalComponent implements OnDestroy {
     if (!draft) return;
     const activity: JournalActivity = {
       ...draft,
+      id:
+        draft.kind === 'actual' && draft.id.startsWith('task:')
+          ? this.journal.newId()
+          : draft.id,
       title: draft.title.trim(),
       start: parseJournalTime(draft.start),
       end: parseJournalTime(draft.end),
@@ -236,6 +410,12 @@ export class JournalComponent implements OnDestroy {
       return;
     }
     this.kind.set(activity.kind);
+    if (
+      this._editedActivity &&
+      !this._editedActivity.id.startsWith('task:') &&
+      this._editedActivity.id !== activity.id
+    )
+      this.journal.removeActivity(this.day(), this._editedActivity.id);
     this.editor.set(null);
   }
 
@@ -279,7 +459,7 @@ export class JournalComponent implements OnDestroy {
     for (const day of this.days()) {
       result += `\n## ${day}\n\n`;
       const metric = this.journal.byDay()[day];
-      for (const a of (metric?.journalActivities ?? [])
+      for (const a of (this.journal.activitiesByDay()[day] ?? [])
         .slice()
         .sort((x, y) => x.start - y.start)) {
         const kind = this._translate.instant(
@@ -289,7 +469,11 @@ export class JournalComponent implements OnDestroy {
         result += `- ${journalTime(a.start)}—${journalTime(a.end)} [${kind} / ${category}] ${a.title}\n${a.note ? `  ${a.note.replace(/\n/g, '\n  ')}\n` : ''}`;
       }
       if (this.period() !== 'day' && metric?.notes) result += `\n${metric.notes}\n`;
+      if (metric?.reflections?.[0]?.text) result += `\n${metric.reflections[0].text}\n`;
     }
+    result += `\n## ${this._translate.instant(T.F.JOURNAL.TASK_OVERVIEW)}\n\n`;
+    for (const { task, hours: tracked } of this.periodTasks())
+      result += `- [${task.isDone ? 'x' : ' '}] ${task.title} · ${tracked} ${hours}\n`;
     result += `\n## ${heading}\n\n${this.text}\n\n## ${this._translate.instant(this.planningLabels[this.period()])}\n\n${this.plan}\n`;
     await download(`journal-${this.period()}-${this.days()[0]}.md`, result);
   }

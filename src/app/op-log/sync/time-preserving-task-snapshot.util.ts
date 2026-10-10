@@ -44,6 +44,7 @@ const OPTIONAL_TASK_FIELDS = Object.keys({
   dueWithTime: true,
   dueDay: true,
   hasPlannedTime: true,
+  journalCategoryId: true,
   deadlineDay: true,
   deadlineWithTime: true,
   deadlineRemindAt: true,

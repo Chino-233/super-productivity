@@ -5,7 +5,7 @@ import { SyncProviderId } from '../../op-log/sync-providers/provider.const';
 import { ProjectCfgFormKey } from '../project/project.model';
 import { KeyboardConfig } from '@sp/keyboard-config';
 import { TaskReminderOptionId } from '../tasks/task.model';
-import { JournalCategory } from '../journal/journal.model';
+import { JournalActivityTemplate, JournalCategory } from '../journal/journal.model';
 
 export type AppFeaturesConfig = Readonly<{
   isTimeTrackingEnabled: boolean;
@@ -25,6 +25,7 @@ export type AppFeaturesConfig = Readonly<{
 
 export type MiscConfig = Readonly<{
   journalCategories?: JournalCategory[];
+  journalActivityTemplates?: JournalActivityTemplate[];
   isConfirmBeforeExit: boolean;
   isConfirmBeforeExitWithoutFinishDay: boolean;
   isMinimizeToTray: boolean;

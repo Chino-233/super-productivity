@@ -23,6 +23,27 @@ export interface JournalPeriodEntry {
   plan: string;
 }
 
+export interface JournalActivityTemplate {
+  id: string;
+  title: string;
+  categoryId: string;
+  duration: number;
+  note?: string;
+}
+
+export const DEFAULT_JOURNAL_TEMPLATES: JournalActivityTemplate[] = [
+  { id: 'sleep', title: 'F.JOURNAL.COMMON_SLEEP', categoryId: 'sleep', duration: 480 },
+  { id: 'meal', title: 'F.JOURNAL.COMMON_MEAL', categoryId: 'life', duration: 30 },
+  {
+    id: 'commute',
+    title: 'F.JOURNAL.COMMON_COMMUTE',
+    categoryId: 'travel',
+    duration: 30,
+  },
+  { id: 'study', title: 'F.JOURNAL.COMMON_STUDY', categoryId: 'study', duration: 60 },
+  { id: 'work', title: 'F.JOURNAL.COMMON_WORK', categoryId: 'work', duration: 60 },
+];
+
 export const DEFAULT_JOURNAL_CATEGORIES: JournalCategory[] = [
   { id: 'study', name: 'F.JOURNAL.CATEGORY_STUDY', color: '#e8a75d' },
   { id: 'work', name: 'F.JOURNAL.CATEGORY_WORK', color: '#69aee3' },
