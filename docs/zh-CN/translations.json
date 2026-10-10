@@ -21,7 +21,7 @@
       "upstreamSource": "docs/wiki/1.01-First-Steps.md",
       "target": "docs/zh-CN/wiki/1.01-First-Steps.md",
       "sourceSha256": "11a9d343175d4eed5fcfae2a2389363763ca0a7f133e035f1bffc6f0bbb73085",
-      "translationSha256": "4d4487e14c31de4b76f427a826043e124b8d9df79b981d11efd0e6ec87471956"
+      "translationSha256": "e64262b938de9d2c130af71d4500fd3d086f3267d281238222e10e3f1631d7d1"
     },
     {
       "source": "docs/wiki/2.03-Add-Tasks.md",
