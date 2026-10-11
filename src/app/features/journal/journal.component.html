@@ -131,40 +131,104 @@
       <p class="help">{{ T.F.JOURNAL.TEMPLATE_HELP | translate }}</p>
       @for (entry of entries; track entry.id) {
         <div class="template-fields">
-          <label
-            >{{ T.F.JOURNAL.ACTIVITY | translate
-            }}<input
-              [(ngModel)]="entry.title"
-              maxlength="300"
-          /></label>
-          <label
-            >{{ T.F.JOURNAL.CATEGORY | translate
-            }}<select [(ngModel)]="entry.categoryId">
-              @for (category of categories(); track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
-              }
-            </select></label
-          >
-          <label
-            >{{ T.F.JOURNAL.DURATION_MINUTES | translate
-            }}<input
-              type="number"
-              min="15"
-              max="1440"
-              step="15"
-              [(ngModel)]="entry.duration"
-          /></label>
-          <button
-            mat-icon-button
-            (click)="removeTemplate(entry.id)"
-            [attr.aria-label]="T.F.JOURNAL.DELETE | translate"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
+          <div class="template-name">
+            <label
+              >{{ T.F.JOURNAL.TEMPLATE_NAME | translate
+              }}<input
+                [(ngModel)]="entry.name"
+                maxlength="300"
+            /></label>
+            <button
+              mat-icon-button
+              (click)="removeTemplate(entry.id)"
+              [attr.aria-label]="T.F.JOURNAL.DELETE | translate"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          <details>
+            <summary>{{ T.F.JOURNAL.TEMPLATE_FIELDS | translate }}</summary>
+            <div class="form-grid">
+              <label
+                >{{ T.F.JOURNAL.ACTIVITY | translate
+                }}<input
+                  [(ngModel)]="entry.title"
+                  maxlength="300"
+                  [placeholder]="T.F.JOURNAL.TEMPLATE_TITLE_DEFAULT | translate"
+              /></label>
+              <label
+                >{{ T.F.JOURNAL.CATEGORY | translate
+                }}<select
+                  [(ngModel)]="entry.categoryId"
+                  [attr.aria-label]="T.F.JOURNAL.CATEGORY | translate"
+                >
+                  <option [ngValue]="undefined">
+                    {{ T.F.JOURNAL.TEMPLATE_INHERIT | translate }}
+                  </option>
+                  @for (category of categories(); track category.id) {
+                    <option [value]="category.id">{{ category.name }}</option>
+                  }
+                </select></label
+              >
+              <label
+                >{{ T.F.JOURNAL.DURATION_MINUTES | translate
+                }}<input
+                  type="number"
+                  min="15"
+                  max="1440"
+                  step="15"
+                  [(ngModel)]="entry.duration"
+              /></label>
+              <label
+                >{{ T.F.JOURNAL.KIND | translate
+                }}<select
+                  [(ngModel)]="entry.kind"
+                  [attr.aria-label]="T.F.JOURNAL.KIND | translate"
+                >
+                  <option [ngValue]="undefined">
+                    {{ T.F.JOURNAL.TEMPLATE_INHERIT | translate }}
+                  </option>
+                  <option value="actual">{{ T.F.JOURNAL.ACTUAL | translate }}</option>
+                  <option value="plan">{{ T.F.JOURNAL.PLAN | translate }}</option>
+                </select></label
+              >
+              <label
+                >{{ T.F.JOURNAL.START | translate
+                }}<input
+                  [(ngModel)]="entry.start"
+                  placeholder="09:00"
+              /></label>
+              <label
+                >{{ T.F.JOURNAL.END | translate
+                }}<input
+                  [(ngModel)]="entry.end"
+                  placeholder="10:00 / 24:00"
+              /></label>
+              <label
+                >{{ T.F.JOURNAL.LINK_TASK | translate
+                }}<select
+                  [(ngModel)]="entry.taskId"
+                  [attr.aria-label]="T.F.JOURNAL.LINK_TASK | translate"
+                >
+                  <option [ngValue]="undefined">
+                    {{ T.F.JOURNAL.TEMPLATE_INHERIT | translate }}
+                  </option>
+                  <option [ngValue]="null">{{ T.F.JOURNAL.NO_TASK | translate }}</option>
+                  @for (task of journal.activeTasks(); track task.id) {
+                    <option [value]="task.id">{{ task.title }}</option>
+                  }
+                </select></label
+              >
+            </div>
+            <label
+              >{{ T.F.JOURNAL.NOTE | translate
+              }}<textarea
+                [(ngModel)]="entry.note"
+                rows="2"
+              ></textarea>
+            </label>
+          </details>
         </div>
-        <label
-          >{{ T.F.JOURNAL.NOTE | translate }}<input [(ngModel)]="entry.note"
-        /></label>
       }
       @if (templateError()) {
         <p
@@ -215,7 +279,7 @@
               mat-button
               (click)="useTemplate(template)"
             >
-              {{ template.title }}
+              {{ template.name }}
             </button>
           }
         </div>
@@ -302,6 +366,14 @@
             rows="2"
           ></textarea>
           <p class="help">{{ T.F.JOURNAL.TIME_HELP | translate }}</p>
+          @if (templateSaved()) {
+            <p
+              class="help"
+              role="status"
+            >
+              {{ T.F.JOURNAL.TEMPLATE_SAVED | translate }}
+            </p>
+          }
           @if (error()) {
             <p
               class="error"
@@ -311,6 +383,13 @@
             </p>
           }
           <div class="actions">
+            <button
+              type="button"
+              mat-button
+              (click)="saveEditorTemplate()"
+            >
+              {{ T.F.JOURNAL.SAVE_TEMPLATE | translate }}
+            </button>
             <button
               type="button"
               mat-button
@@ -506,7 +585,7 @@
               mat-button
               (click)="useTemplate(template)"
             >
-              {{ template.title }}
+              {{ template.name }}
             </button>
           }
         </div>

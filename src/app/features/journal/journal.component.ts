@@ -17,6 +17,7 @@ import { DateService } from '../../core/date/date.service';
 import { T } from '../../t.const';
 import { download } from '../../util/download';
 import { JournalService } from './journal.service';
+import { applyJournalTemplate, isValidJournalTemplate } from './journal-template.util';
 import { ReflectionNoteComponent } from '../metric/reflection-note/reflection-note.component';
 import {
   JournalCalendarComponent,
@@ -69,6 +70,7 @@ interface ActivityDraft {
 export class JournalComponent implements OnDestroy {
   readonly T = T;
   readonly journal = inject(JournalService);
+  readonly templateSaved = signal(false);
   private readonly _dateService = inject(DateService);
   private readonly _translate = inject(TranslateService);
   private readonly _language = toSignal(this._translate.onLangChange);
@@ -90,7 +92,8 @@ export class JournalComponent implements OnDestroy {
     const entries = this.journal.templates();
     return entries.map((template) => ({
       ...template,
-      title: this._translate.instant(template.title),
+      name: this._translate.instant(template.name ?? template.title ?? ''),
+      title: template.title ? this._translate.instant(template.title) : undefined,
     }));
   });
   readonly periodTasks = computed(() => {
@@ -274,6 +277,7 @@ export class JournalComponent implements OnDestroy {
   }
 
   editActivity(activity?: JournalActivity, copy = false): void {
+    this.templateSaved.set(false);
     this._selectedRange = null;
     this._editedActivity = copy ? null : (activity ?? null);
     this.error.set('');
@@ -320,20 +324,66 @@ export class JournalComponent implements OnDestroy {
   useTemplate(template: JournalActivityTemplate): void {
     if (!this.editor()) this.editActivity();
     const draft = this.editor()!;
-    const start = parseJournalTime(draft.start);
+    const lockedTask = this._editedActivity?.id.startsWith('task:');
+    const taskId = lockedTask ? draft.taskId : template.taskId;
+    const task = taskId ? this.journal.activeTasks().find((t) => t.id === taskId) : null;
+    if (taskId && !task) {
+      this.error.set(this._translate.instant(T.F.JOURNAL.TASK_UNAVAILABLE));
+      return;
+    }
+    this.error.set('');
+    const activity = applyJournalTemplate(
+      {
+        ...draft,
+        start: parseJournalTime(draft.start),
+        end: parseJournalTime(draft.end),
+        title: draft.title || task?.title || '',
+        note: draft.note || task?.notes || '',
+      },
+      {
+        ...template,
+        ...(lockedTask ? { taskId: draft.taskId } : {}),
+        categoryId: this.categories().some((c) => c.id === template.categoryId)
+          ? template.categoryId
+          : undefined,
+      },
+      !!this._selectedRange && this._selectedRange.end - this._selectedRange.start > 15,
+    );
     this.editor.set({
-      ...draft,
-      title: template.title,
-      categoryId: this.categories().some((c) => c.id === template.categoryId)
-        ? template.categoryId
-        : this.categories()[0].id,
-      note: template.note ?? '',
-      end: journalTime(
-        this._selectedRange && this._selectedRange.end - this._selectedRange.start > 15
-          ? this._selectedRange.end
-          : Math.min(1440, start + template.duration),
-      ),
+      ...activity,
+      id:
+        activity.kind === 'plan' && activity.taskId
+          ? `task:${activity.taskId}`
+          : !lockedTask && draft.id.startsWith('task:')
+            ? (this._editedActivity?.id ?? this.journal.newId())
+            : draft.id,
+      start: journalTime(activity.start),
+      end: journalTime(activity.end),
+      note: activity.note ?? '',
     });
+  }
+
+  saveEditorTemplate(): void {
+    const draft = this.editor();
+    if (!draft) return;
+    const template: JournalActivityTemplate = {
+      id: this.journal.newId(),
+      name: draft.title.trim(),
+      title: draft.title.trim(),
+      categoryId: draft.categoryId,
+      start: draft.start,
+      end: draft.end,
+      kind: draft.kind,
+      note: draft.note,
+      taskId: draft.taskId ?? null,
+    };
+    if (!isValidJournalTemplate(template)) {
+      this.error.set(this._translate.instant(T.F.JOURNAL.TEMPLATE_INVALID));
+      return;
+    }
+    this.journal.saveTemplates([...this.journal.templates(), template]);
+    this.error.set('');
+    this.templateSaved.set(true);
   }
 
   linkTask(taskId: string): void {
@@ -359,9 +409,7 @@ export class JournalComponent implements OnDestroy {
   addTemplate(): void {
     this.templateDraft?.push({
       id: this.journal.newId(),
-      title: '',
-      categoryId: this.categories()[0].id,
-      duration: 30,
+      name: '',
     });
   }
 
@@ -374,19 +422,27 @@ export class JournalComponent implements OnDestroy {
     if (
       this.templateDraft.some(
         (entry) =>
-          !entry.title.trim() ||
-          !Number.isInteger(entry.duration) ||
-          entry.duration < 15 ||
-          entry.duration > 1440 ||
-          entry.duration % 15 ||
-          !this.categories().some((c) => c.id === entry.categoryId),
+          !isValidJournalTemplate(entry) ||
+          (!!entry.categoryId &&
+            !this.categories().some((c) => c.id === entry.categoryId)),
       )
     ) {
       this.templateError.set(this._translate.instant(T.F.JOURNAL.TEMPLATE_INVALID));
       return;
     }
     this.journal.saveTemplates(
-      this.templateDraft.map((entry) => ({ ...entry, title: entry.title.trim() })),
+      this.templateDraft.map((entry) => ({
+        id: entry.id,
+        name: (entry.name || entry.title)!.trim(),
+        ...(entry.title?.trim() ? { title: entry.title.trim() } : {}),
+        ...(entry.categoryId ? { categoryId: entry.categoryId } : {}),
+        ...(entry.duration != null ? { duration: entry.duration } : {}),
+        ...(entry.start ? { start: entry.start } : {}),
+        ...(entry.end ? { end: entry.end } : {}),
+        ...(entry.kind ? { kind: entry.kind } : {}),
+        ...(entry.taskId !== undefined ? { taskId: entry.taskId } : {}),
+        ...(entry.note ? { note: entry.note } : {}),
+      })),
     );
     this.templateDraft = null;
   }
