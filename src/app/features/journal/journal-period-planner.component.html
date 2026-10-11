@@ -1,0 +1,329 @@
+@if (editor(); as draft) {
+  <section
+    class="planning-editor"
+    role="region"
+    [attr.aria-label]="
+      (draft.scope === 'month' ? T.F.JOURNAL.MONTH_PLANNING : T.F.JOURNAL.WEEK_PLANNING)
+        | translate
+    "
+  >
+    <h2>
+      {{
+        (draft.scope === 'month' ? T.F.JOURNAL.MONTH_PLANNING : T.F.JOURNAL.WEEK_PLANNING)
+          | translate
+      }}
+    </h2>
+    <label
+      >{{ T.F.JOURNAL.ACTIVITY | translate
+      }}<input
+        id="period-plan-title"
+        #planningTitle
+        [(ngModel)]="draft.title"
+        maxlength="300"
+    /></label>
+    <div class="planning-fields">
+      @if (draft.scope === 'month') {
+        <label
+          >{{ T.F.JOURNAL.FROM_DAY | translate
+          }}<input
+            id="month-plan-from"
+            type="date"
+            [(ngModel)]="draft.fromDay"
+        /></label>
+        <label
+          >{{ T.F.JOURNAL.TO_DAY | translate
+          }}<input
+            id="month-plan-to"
+            type="date"
+            [(ngModel)]="draft.toDay"
+        /></label>
+      } @else {
+        <label
+          >{{ T.F.JOURNAL.BUDGET_DAY | translate
+          }}<select
+            id="week-plan-day"
+            [(ngModel)]="draft.day"
+          >
+            @for (date of weekDays(); track date) {
+              <option [value]="date">{{ date }}</option>
+            }
+          </select></label
+        >
+        <label
+          >{{ T.F.JOURNAL.BUDGET_HOURS | translate
+          }}<input
+            id="week-plan-hours"
+            type="number"
+            min="0.25"
+            max="24"
+            step="0.25"
+            [(ngModel)]="draft.hours"
+        /></label>
+        <label
+          >{{ T.F.JOURNAL.MONTH_SOURCE | translate
+          }}<select
+            id="week-month-source"
+            [ngModel]="draft.monthPlanId ?? ''"
+            (ngModelChange)="applyMonthSource($event)"
+          >
+            <option value="">{{ T.F.JOURNAL.INDEPENDENT_PLAN | translate }}</option>
+            @for (source of monthOptions(draft.day); track source.id) {
+              <option [value]="source.id">
+                {{ source.title }} · {{ source.fromDay }}—{{ source.toDay }}
+              </option>
+            }
+          </select></label
+        >
+      }
+      <label
+        >{{ T.F.JOURNAL.CATEGORY | translate
+        }}<select
+          id="period-plan-category"
+          [(ngModel)]="draft.categoryId"
+        >
+          @for (category of journal.categories(); track category.id) {
+            <option [value]="category.id">{{ category.name | translate }}</option>
+          }
+        </select></label
+      >
+      <label
+        >{{ T.F.JOURNAL.LINK_TASK | translate
+        }}<select
+          id="period-plan-task"
+          [ngModel]="draft.taskId ?? ''"
+          (ngModelChange)="linkTask($event)"
+        >
+          <option value="">{{ T.F.JOURNAL.NO_TASK | translate }}</option>
+          @for (task of journal.activeTasks(); track task.id) {
+            <option [value]="task.id">{{ task.title }}</option>
+          }
+        </select></label
+      >
+    </div>
+    <label
+      >{{ T.F.JOURNAL.NOTE | translate
+      }}<textarea
+        id="period-plan-note"
+        [(ngModel)]="draft.note"
+        rows="2"
+      ></textarea>
+    </label>
+    @if (error()) {
+      <p
+        class="error"
+        role="alert"
+      >
+        {{ error() }}
+      </p>
+    }
+    <div class="planning-actions">
+      <button
+        mat-button
+        (click)="dismissRequested.emit(false)"
+      >
+        {{ T.G.CLOSE | translate }}</button
+      ><button
+        mat-flat-button
+        (click)="dismissRequested.emit(true)"
+      >
+        {{ T.G.SAVE | translate }}
+      </button>
+    </div>
+  </section>
+}
+
+@if (period() === 'month') {
+  <div class="planning-heading">
+    <h2>{{ T.F.JOURNAL.MONTH_PLANNING | translate }}</h2>
+    <button
+      mat-flat-button
+      (click)="editRequested.emit({ scope: 'month' })"
+    >
+      {{ T.F.JOURNAL.ADD_MONTH_PLAN | translate }}
+    </button>
+  </div>
+  <p>{{ T.F.JOURNAL.MONTH_PLANNING_HELP | translate }}</p>
+  <div class="month-grid">
+    @for (label of ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']; track label) {
+      <strong class="weekday">{{ T.F.JOURNAL[label] | translate }}</strong>
+    }
+    @for (empty of monthPadding(); track $index) {
+      <div aria-hidden="true"></div>
+    }
+    @for (date of monthDays(); track date) {
+      <div
+        class="month-cell"
+        [class.range-selected]="isSelected(date)"
+        (pointerenter)="extendMonthRange(date)"
+      >
+        <button
+          class="month-day-button"
+          [attr.data-day]="date"
+          [attr.aria-label]="date"
+          (pointerdown)="beginMonthRange(date, $event)"
+          (keydown.enter)="
+            editRequested.emit({ scope: 'month', day: date }); $event.preventDefault()
+          "
+          (keydown.space)="
+            editRequested.emit({ scope: 'month', day: date }); $event.preventDefault()
+          "
+        >
+          {{ date.slice(8) }}
+        </button>
+        @for (plan of plansForDay(date); track plan.id) {
+          <button
+            class="month-chip"
+            [style.border-left-color]="color(plan.categoryId)"
+            [title]="plan.title + ' · ' + plan.fromDay + '—' + plan.toDay"
+            (click)="editRequested.emit({ scope: 'month', month: plan })"
+          >
+            {{ plan.title }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+  <div class="month-plan-list">
+    @for (plan of monthlyRows(); track plan.id) {
+      <article
+        class="plan-card"
+        [style.border-left-color]="color(plan.categoryId)"
+      >
+        <strong>{{ plan.title }}</strong
+        ><small>{{ plan.fromDay }}—{{ plan.toDay }}</small>
+        <small
+          >{{ T.F.JOURNAL.WEEK_ALLOCATED | translate }} {{ hours(plan.minutes) }}
+          {{ T.F.JOURNAL.HOURS | translate }} ·
+          {{ T.F.JOURNAL.DAILY_SCHEDULED | translate }} {{ hours(plan.scheduled) }}
+          {{ T.F.JOURNAL.HOURS | translate }}</small
+        >
+        @if (plan.note) {
+          <p>{{ plan.note }}</p>
+        }
+        <div class="planning-actions">
+          <button
+            mat-button
+            (click)="editRequested.emit({ scope: 'month', month: plan })"
+          >
+            {{ T.F.JOURNAL.EDIT | translate }}</button
+          ><button
+            mat-button
+            (click)="dayRequested.emit(plan.fromDay)"
+          >
+            {{ T.F.JOURNAL.OPEN_WEEK | translate }}</button
+          ><button
+            mat-button
+            (click)="removeMonth(plan)"
+          >
+            {{ T.F.JOURNAL.DELETE | translate }}
+          </button>
+        </div>
+      </article>
+    } @empty {
+      <p>{{ T.F.JOURNAL.MONTH_PLANS_EMPTY | translate }}</p>
+    }
+  </div>
+} @else if (period() === 'week') {
+  <div class="planning-heading">
+    <h2>{{ T.F.JOURNAL.WEEK_PLANNING | translate }}</h2>
+    <button
+      mat-flat-button
+      (click)="editRequested.emit({ scope: 'week' })"
+    >
+      {{ T.F.JOURNAL.ADD_WEEK_PLAN | translate }}
+    </button>
+  </div>
+  <p>{{ T.F.JOURNAL.WEEK_PLANNING_HELP | translate }}</p>
+  <div class="week-grid">
+    @for (column of week(); track column.day) {
+      <section
+        class="week-column"
+        [attr.data-day]="column.day"
+      >
+        <strong>{{ column.day.slice(5) }}</strong
+        ><small
+          >{{ T.F.JOURNAL.WEEK_ALLOCATED | translate }} {{ hours(column.minutes) }}
+          {{ T.F.JOURNAL.HOURS | translate }}</small
+        >
+        <button
+          mat-button
+          (click)="editRequested.emit({ scope: 'week', day: column.day })"
+        >
+          {{ T.F.JOURNAL.ADD_WEEK_PLAN | translate }}
+        </button>
+        @for (plan of column.entries; track plan.id) {
+          <article
+            class="plan-card"
+            [style.border-left-color]="color(plan.categoryId)"
+          >
+            <strong>{{ plan.title }}</strong
+            ><b>{{ hours(plan.minutes) }} {{ T.F.JOURNAL.HOURS | translate }}</b>
+            @if (plan.source) {
+              <small
+                >{{ T.F.JOURNAL.MONTH_SOURCE | translate }} · {{ plan.source }}</small
+              >
+            }
+            <small
+              >{{ T.F.JOURNAL.DAILY_SCHEDULED | translate }} {{ hours(plan.planned) }}
+              {{ T.F.JOURNAL.HOURS | translate }} ·
+              {{ T.F.JOURNAL.BUDGET_REMAINING | translate }} {{ hours(plan.remaining) }}
+              {{ T.F.JOURNAL.HOURS | translate }}</small
+            >
+            <small
+              >{{ T.F.JOURNAL.ACTUAL | translate }} {{ hours(plan.actual) }}
+              {{ T.F.JOURNAL.HOURS | translate }}</small
+            >
+            <div class="planning-actions">
+              <button
+                mat-button
+                (click)="arrangeRequested.emit(plan)"
+              >
+                {{ T.F.JOURNAL.ARRANGE_DAY | translate }}</button
+              ><button
+                mat-button
+                (click)="editRequested.emit({ scope: 'week', week: plan })"
+              >
+                {{ T.F.JOURNAL.EDIT | translate }}</button
+              ><button
+                mat-button
+                (click)="removeWeek(plan)"
+              >
+                {{ T.F.JOURNAL.DELETE | translate }}
+              </button>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+} @else {
+  @if (dailyBudgets().length) {
+    <section class="day-budgets">
+      <h2>{{ T.F.JOURNAL.DAY_BUDGETS | translate }}</h2>
+      <p>{{ T.F.JOURNAL.DAY_BUDGETS_HELP | translate }}</p>
+      @for (plan of dailyBudgets(); track plan.id) {
+        <article
+          class="plan-card"
+          [class.range-selected]="selectedBudgetId() === plan.id"
+          [style.border-left-color]="color(plan.categoryId)"
+        >
+          <strong
+            >{{ plan.title }} · {{ hours(plan.minutes) }}
+            {{ T.F.JOURNAL.HOURS | translate }}</strong
+          ><small
+            >{{ T.F.JOURNAL.DAILY_SCHEDULED | translate }} {{ hours(plan.planned) }}
+            {{ T.F.JOURNAL.HOURS | translate }} ·
+            {{ T.F.JOURNAL.BUDGET_REMAINING | translate }} {{ hours(plan.remaining) }}
+            {{ T.F.JOURNAL.HOURS | translate }}</small
+          >
+          <button
+            mat-button
+            (click)="arrangeRequested.emit(plan)"
+          >
+            {{ T.F.JOURNAL.ARRANGE_DAY | translate }}
+          </button>
+        </article>
+      }
+    </section>
+  }
+}

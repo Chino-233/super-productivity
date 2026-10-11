@@ -1,0 +1,140 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.planning-heading,
+.planning-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s);
+  flex-wrap: wrap;
+}
+.planning-heading {
+  justify-content: space-between;
+}
+h2 {
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+p,
+small {
+  color: var(--text-color-muted);
+}
+small {
+  display: block;
+}
+.planning-editor {
+  padding: var(--s2);
+  border: 1px solid var(--separator-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--s3);
+}
+label {
+  display: grid;
+  gap: var(--s-half);
+  margin: var(--s) 0;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  width: 100%;
+  font: inherit;
+  padding: var(--s);
+  border: 1px solid var(--separator-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-lighter);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+.planning-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s-half);
+  margin: var(--s2) 0;
+}
+.weekday {
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+.month-cell {
+  min-height: 96px;
+  min-width: 0;
+  border: 1px solid var(--separator-color);
+  border-radius: var(--radius-sm);
+  padding: var(--s-half);
+}
+.month-day-button,
+.month-chip {
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: var(--s-half);
+  cursor: pointer;
+}
+.month-day-button {
+  text-align: right;
+  touch-action: none;
+}
+.month-chip {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-left: var(--s-half) solid;
+  font-size: var(--font-size-sm);
+}
+.range-selected {
+  background: var(--bg-lighter);
+  outline: 1px solid var(--c-primary);
+}
+.plan-card {
+  min-width: 0;
+  padding: var(--s);
+  border: 1px solid var(--separator-color);
+  border-left: var(--s-half) solid;
+  border-radius: var(--radius-sm);
+  margin: var(--s) 0;
+  overflow-wrap: anywhere;
+}
+.plan-card strong {
+  display: block;
+}
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(125px, 1fr));
+  gap: var(--s);
+  overflow-x: auto;
+}
+.week-column {
+  min-width: 0;
+}
+.error {
+  color: var(--c-warn);
+}
+@media (max-width: 1000px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+  .week-column {
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--separator-color);
+  }
+}
+@media (max-width: 600px) {
+  .planning-fields {
+    grid-template-columns: 1fr;
+  }
+  .month-cell {
+    min-height: 80px;
+    padding: 0;
+  }
+}

@@ -350,6 +350,24 @@
               </select>
             </div>
           </div>
+          <label for="journal-week-source">{{
+            T.F.JOURNAL.WEEK_SOURCE | translate
+          }}</label>
+          <select
+            id="journal-week-source"
+            name="weekSource"
+            [ngModel]="draft.weekPlanId ?? ''"
+            (ngModelChange)="linkWeekPlan($event)"
+            [disabled]="draft.id.startsWith('task:')"
+          >
+            <option value="">{{ T.F.JOURNAL.NO_WEEK_SOURCE | translate }}</option>
+            @for (budget of dayWeekPlans(); track budget.id) {
+              <option [value]="budget.id">
+                {{ budget.title }} · {{ budget.minutes / 60 }}
+                {{ T.F.JOURNAL.HOURS | translate }}
+              </option>
+            }
+          </select>
           <label for="journal-task">{{ T.F.JOURNAL.LINK_TASK | translate }}</label>
           <select
             id="journal-task"
@@ -364,7 +382,14 @@
             }
           </select>
           @if (draft.kind === 'plan' && draft.taskId) {
-            <p class="help">{{ T.F.JOURNAL.TASK_LINK_HELP | translate }}</p>
+            <p class="help">
+              {{
+                (draft.taskLinkMode === 'reference'
+                  ? T.F.JOURNAL.REFERENCE_TASK_HELP
+                  : T.F.JOURNAL.TASK_LINK_HELP
+                ) | translate
+              }}
+            </p>
           }
           <label for="journal-activity-note">{{ T.F.JOURNAL.NOTE | translate }}</label
           ><textarea
@@ -424,8 +449,28 @@
       {{ error() }}
     </p>
   }
-  <div class="journal-layout">
+  <div
+    class="journal-layout"
+    [class.period-layout]="period() !== 'day'"
+  >
     <section class="panel">
+      <journal-period-planner
+        [day]="day()"
+        [period]="period()"
+        [selectedBudgetId]="selectedWeekPlanId()"
+        (editRequested)="openPeriodEditor($event)"
+        (dismissRequested)="closeExpandedViews(false, $event)"
+        (arrangeRequested)="selectWeekPlan($event)"
+        (dayRequested)="openWeek($event)"
+      />
+      @if (selectedWeekPlan(); as budget) {
+        <p
+          class="help"
+          role="status"
+        >
+          {{ T.F.JOURNAL.BUDGET_SELECTED | translate: { title: budget.title } }}
+        </p>
+      }
       @if (period() === 'day') {
         <div class="activity-controls">
           <button
@@ -542,38 +587,46 @@
           />
         }
       } @else {
-        <h2>{{ T.F.JOURNAL.OVERVIEW | translate }}</h2>
-        <p class="help">{{ T.F.JOURNAL.OVERVIEW_HELP | translate }}</p>
-        @for (row of overview(); track row.day) {
-          <div class="overview-row">
-            <button
-              mat-button
-              (click)="openDay(row.day)"
-            >
-              {{ row.day.slice(5) }}
-            </button>
-            <div class="overview-bar">
-              @for (segment of row.segments; track segment.id) {
-                <span
-                  [style.left.%]="segment.start"
-                  [style.width.%]="segment.width"
-                  [style.background-color]="segment.color"
-                  [title]="segment.title"
-                ></span>
-              }
+        <details
+          [open]="historyExpanded()"
+          class="period-history"
+        >
+          <summary (click)="toggleHistory(); $event.preventDefault()">
+            {{ T.F.JOURNAL.PERIOD_REVIEW | translate }}
+          </summary>
+          <h2>{{ T.F.JOURNAL.OVERVIEW | translate }}</h2>
+          <p class="help">{{ T.F.JOURNAL.OVERVIEW_HELP | translate }}</p>
+          @for (row of overview(); track row.day) {
+            <div class="overview-row">
+              <button
+                mat-button
+                (click)="openDay(row.day)"
+              >
+                {{ row.day.slice(5) }}
+              </button>
+              <div class="overview-bar">
+                @for (segment of row.segments; track segment.id) {
+                  <span
+                    [style.left.%]="segment.start"
+                    [style.width.%]="segment.width"
+                    [style.background-color]="segment.color"
+                    [title]="segment.title"
+                  ></span>
+                }
+              </div>
+              <small>{{ row.hours }} h</small>
             </div>
-            <small>{{ row.hours }} h</small>
-          </div>
-          @if (row.reflection) {
-            <p class="daily-notes">{{ row.day }} · {{ row.reflection }}</p>
+            @if (row.reflection) {
+              <p class="daily-notes">{{ row.day }} · {{ row.reflection }}</p>
+            }
+            @if (row.notes) {
+              <details>
+                <summary>{{ row.day }} · {{ T.F.JOURNAL.DAY | translate }}</summary>
+                <p class="daily-notes">{{ row.notes }}</p>
+              </details>
+            }
           }
-          @if (row.notes) {
-            <details>
-              <summary>{{ row.day }} · {{ T.F.JOURNAL.DAY | translate }}</summary>
-              <p class="daily-notes">{{ row.notes }}</p>
-            </details>
-          }
-        }
+        </details>
       }
     </section>
     <aside class="journal-side">

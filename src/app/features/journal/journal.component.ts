@@ -19,6 +19,10 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DateService } from '../../core/date/date.service';
 import { T } from '../../t.const';
 import { download } from '../../util/download';
+import {
+  JournalPeriodPlannerComponent,
+  JournalPlanningEdit,
+} from './journal-period-planner.component';
 import { JournalService } from './journal.service';
 import { applyJournalTemplate, isValidJournalTemplate } from './journal-template.util';
 import { ReflectionNoteComponent } from '../metric/reflection-note/reflection-note.component';
@@ -32,6 +36,7 @@ import {
   JournalActivityKind,
   JournalCategory,
   JournalPeriod,
+  JournalWeekPlanEntry,
 } from './journal.model';
 import {
   isJournalDate,
@@ -52,6 +57,8 @@ interface ActivityDraft {
   kind: JournalActivityKind;
   note: string;
   taskId?: string;
+  weekPlanId?: string;
+  taskLinkMode?: 'reference';
 }
 
 @Component({
@@ -63,6 +70,7 @@ interface ActivityDraft {
     MatIconModule,
     TranslatePipe,
     JournalCalendarComponent,
+    JournalPeriodPlannerComponent,
     ReflectionNoteComponent,
   ],
   templateUrl: './journal.component.html',
@@ -100,6 +108,19 @@ export class JournalComponent implements OnDestroy {
   });
   readonly periodTasks = computed(() => {
     const days = new Set(this.days());
+    const sourceTaskIds = new Set([
+      ...this.journal
+        .weekPlans()
+        .filter((p) => days.has(p.day))
+        .map((p) => p.taskId),
+      ...this.journal
+        .monthPlans()
+        .filter((p) => p.fromDay <= this.days().at(-1)! && p.toDay >= this.days()[0])
+        .map((p) => p.taskId),
+      ...this.days().flatMap((day) =>
+        (this.journal.activitiesByDay()[day] ?? []).map((a) => a.taskId),
+      ),
+    ]);
     return this.journal
       .tasks()
       .filter((task) => {
@@ -108,6 +129,7 @@ export class JournalComponent implements OnDestroy {
           ? journalDate(new Date(task.dueWithTime))
           : task.dueDay;
         return (
+          sourceTaskIds.has(task.id) ||
           (due && days.has(due)) ||
           (task.doneOn && days.has(journalDate(new Date(task.doneOn)))) ||
           this.days().some((day) => (task.timeSpentOnDay[day] ?? 0) > 0)
@@ -214,6 +236,16 @@ export class JournalComponent implements OnDestroy {
     week: T.F.JOURNAL.PLAN_WEEK,
     month: T.F.JOURNAL.PLAN_MONTH,
   };
+  readonly selectedWeekPlanId = signal<string | null>(null);
+  readonly selectedWeekPlan = computed(
+    () =>
+      this.journal.weekPlans().find((p) => p.id === this.selectedWeekPlanId()) ?? null,
+  );
+  readonly dayWeekPlans = computed(() =>
+    this.journal.weekPlans().filter((p) => p.day === this.day()),
+  );
+  readonly historyExpanded = signal(false);
+  private readonly _periodPlanner = viewChild(JournalPeriodPlannerComponent);
   readonly editor = signal<ActivityDraft | null>(null);
   readonly error = signal('');
   readonly dirty = signal(false);
@@ -300,18 +332,69 @@ export class JournalComponent implements OnDestroy {
   }
 
   // All dismissal/navigation paths use the same persistence boundary.
-  closeExpandedViews(forceActivity = false): boolean {
+  closeExpandedViews(forceActivity = false, forcePlanner = false): boolean {
     this.saveJournal();
     this._reflection()?.closeExpandedViews();
     const categoriesSaved = this._persistCategories();
     const templatesSaved = this._persistTemplates();
     const activitySaved = this._persistActivity(forceActivity);
-    if (!categoriesSaved || !templatesSaved || !activitySaved) return false;
+    const plannerSaved =
+      this._periodPlanner()?.persistPendingChanges(forcePlanner) ?? true;
+    if (!categoriesSaved || !templatesSaved || !activitySaved || !plannerSaved)
+      return false;
+    this._periodPlanner()?.closeEditors();
+    this.selectedWeekPlanId.set(null);
+    this.historyExpanded.set(false);
     this.editor.set(null);
     this.categoryDraft = null;
     this.templateDraft = null;
     this.expandedTemplates.set([]);
     return true;
+  }
+
+  openPeriodEditor(request: JournalPlanningEdit): void {
+    if (this.closeExpandedViews()) this._periodPlanner()?.openEditor(request);
+  }
+
+  openWeek(day: string): void {
+    if (!this.closeExpandedViews()) return;
+    this.day.set(day);
+    this.period.set('week');
+  }
+
+  selectWeekPlan(plan: JournalWeekPlanEntry): void {
+    if (!this.closeExpandedViews()) return;
+    this.day.set(plan.day);
+    this.period.set('day');
+    this.kind.set('plan');
+    this.view.set('timeline');
+    this.selectedWeekPlanId.set(plan.id);
+  }
+
+  toggleHistory(): void {
+    const open = !this.historyExpanded();
+    if (this.closeExpandedViews()) this.historyExpanded.set(open);
+  }
+
+  linkWeekPlan(id: string): void {
+    const draft = this.editor();
+    if (!draft || draft.id.startsWith('task:')) return;
+    const plan = this.dayWeekPlans().find((p) => p.id === id);
+    this.editor.set({
+      ...draft,
+      weekPlanId: plan?.id,
+      ...(plan
+        ? {
+            taskLinkMode: 'reference' as const,
+            title: plan.title,
+            categoryId: plan.categoryId,
+            note: plan.note ?? '',
+            taskId: this.journal.activeTasks().some((t) => t.id === plan.taskId)
+              ? plan.taskId
+              : undefined,
+          }
+        : {}),
+    });
   }
 
   setView(view: 'timeline' | 'list' | 'compare'): void {
@@ -347,12 +430,15 @@ export class JournalComponent implements OnDestroy {
       kind: copy ? 'actual' : (activity?.kind ?? this.kind()),
       note: activity?.note ?? '',
       ...(activity?.taskId ? { taskId: activity.taskId } : {}),
+      ...(activity?.weekPlanId ? { weekPlanId: activity.weekPlanId } : {}),
+      ...(activity?.taskLinkMode ? { taskLinkMode: activity.taskLinkMode } : {}),
     });
     this._initialEditor = JSON.stringify(this.editor());
     return true;
   }
 
   selectCalendar(range: JournalCalendarSelection): void {
+    const budget = this.selectedWeekPlan();
     if (!this.editActivity()) return;
     this._selectedRange = range;
     this.editor.update(
@@ -365,6 +451,19 @@ export class JournalComponent implements OnDestroy {
         },
     );
     this._initialEditor = JSON.stringify(this.editor());
+    if (budget && range.kind === 'plan' && budget.day === this.day()) {
+      this.linkWeekPlan(budget.id);
+      if (range.end - range.start === 15) {
+        const remaining = Math.max(15, this.journal.progress(budget).remaining);
+        this.editor.update(
+          (draft) =>
+            draft && {
+              ...draft,
+              end: journalTime(Math.min(1440, range.start + remaining)),
+            },
+        );
+      }
+    }
   }
 
   changeCalendar(change: {
@@ -382,6 +481,16 @@ export class JournalComponent implements OnDestroy {
   }
 
   useTemplate(template: JournalActivityTemplate): void {
+    if (this.period() !== 'day') {
+      const planner = this._periodPlanner();
+      if (!planner) return;
+      if (!planner.editor()) {
+        if (!this.closeExpandedViews()) return;
+        planner.openEditor({ scope: this.period() as 'month' | 'week' });
+      }
+      planner.applyTemplate(template);
+      return;
+    }
     if (!this.editor()) this.editActivity();
     const draft = this.editor()!;
     const lockedTask = this._editedActivity?.id.startsWith('task:');
@@ -412,7 +521,9 @@ export class JournalComponent implements OnDestroy {
     this.editor.set({
       ...activity,
       id:
-        activity.kind === 'plan' && activity.taskId
+        activity.kind === 'plan' &&
+        activity.taskId &&
+        activity.taskLinkMode !== 'reference'
           ? `task:${activity.taskId}`
           : !lockedTask && draft.id.startsWith('task:')
             ? (this._editedActivity?.id ?? this.journal.newId())
@@ -460,7 +571,9 @@ export class JournalComponent implements OnDestroy {
       (draft) =>
         draft && {
           ...draft,
-          ...(task && draft.kind === 'plan' ? { id: `task:${task.id}` } : {}),
+          ...(task && draft.kind === 'plan' && draft.taskLinkMode !== 'reference'
+            ? { id: `task:${task.id}` }
+            : {}),
           taskId: task?.id,
           title: task?.title ?? draft.title,
           note: draft.kind === 'plan' ? (task?.notes ?? '') : draft.note,
@@ -646,6 +759,21 @@ export class JournalComponent implements OnDestroy {
       }
       if (this.period() !== 'day' && metric?.notes) result += `\n${metric.notes}\n`;
       if (metric?.reflections?.[0]?.text) result += `\n${metric.reflections[0].text}\n`;
+    }
+    const periodStart = this.days()[0];
+    const periodEnd = this.days().at(-1)!;
+    result += `\n## ${this._translate.instant(T.F.JOURNAL.MONTH_PLANNING)}\n\n`;
+    for (const month of this.journal
+      .monthPlans()
+      .filter((p) => p.fromDay <= periodEnd && p.toDay >= periodStart))
+      result += `- ${month.fromDay}—${month.toDay}: ${month.title}${month.note ? ` · ${month.note}` : ''}\n`;
+    result += `\n## ${this._translate.instant(T.F.JOURNAL.WEEK_PLANNING)}\n\n`;
+    for (const week of this.journal
+      .weekPlans()
+      .filter((p) => this.days().includes(p.day))) {
+      const progress = this.journal.progress(week);
+      const scheduled = this._translate.instant(T.F.JOURNAL.DAILY_SCHEDULED);
+      result += `- ${week.day}: ${week.title} · ${week.minutes / 60} ${hours} · ${scheduled} ${progress.planned / 60} ${hours}\n`;
     }
     result += `\n## ${this._translate.instant(T.F.JOURNAL.TASK_OVERVIEW)}\n\n`;
     for (const { task, hours: tracked } of this.periodTasks())

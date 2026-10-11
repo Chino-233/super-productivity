@@ -146,4 +146,12 @@ test('uses the original Chinese settings and persists custom journal categories'
   await expect(journal.locator('.distribution').first()).toContainText('上课 / 科研');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await journal.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await journal.getByRole('button', { name: '月记', exact: true }).click();
+  await expect(
+    journal.getByRole('heading', { name: '月度规划', exact: true }),
+  ).toBeVisible();
+  await journal.getByRole('button', { name: '周记', exact: true }).click();
+  await expect(
+    journal.getByRole('heading', { name: '每周时长预算', exact: true }),
+  ).toBeVisible();
 });
