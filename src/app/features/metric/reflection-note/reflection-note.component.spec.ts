@@ -1,5 +1,5 @@
 import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
-import { EnvironmentInjector, runInInjectionContext } from '@angular/core';
+import { EnvironmentInjector, runInInjectionContext, signal } from '@angular/core';
 import { of, Subject, BehaviorSubject } from 'rxjs';
 import { ReflectionNoteComponent } from './reflection-note.component';
 import { MetricService } from '../metric.service';
@@ -37,6 +37,7 @@ describe('ReflectionNoteComponent', () => {
     ]);
     mockMetricService.getMetricForDay$.and.returnValue(metricForDay$.asObservable());
     mockMetricService.getAllMetrics$.and.returnValue(of([]));
+    mockMetricService.upsertMetric.and.callFake((metric) => metricForDay$.next(metric));
 
     mockGlobalTrackingIntervalService = {
       todayDateStr: () => TODAY,
@@ -326,8 +327,7 @@ describe('ReflectionNoteComponent', () => {
       tick(500);
 
       // Trimmed value is empty, so reflections should be empty array
-      const calledWith = mockMetricService.upsertMetric.calls.mostRecent().args[0];
-      expect(calledWith.reflections).toEqual([]);
+      expect(mockMetricService.upsertMetric).not.toHaveBeenCalled();
 
       flush();
     }));
@@ -392,6 +392,53 @@ describe('ReflectionNoteComponent', () => {
       expect(component.inputText()).toBe('Synced from another device');
 
       flush();
+    }));
+  });
+
+  describe('closing persistence', () => {
+    it('flushes the last keystroke on destroy without another debounced write', fakeAsync(() => {
+      createComponent();
+      tick();
+      component.onReflectionChange('Last keystroke');
+      tick(100);
+      component.ngOnDestroy();
+      expect(mockMetricService.upsertMetric).toHaveBeenCalledTimes(1);
+      expect(metricForDay$.value.reflections?.[0]?.text).toBe('Last keystroke');
+      tick(500);
+      expect(mockMetricService.upsertMetric).toHaveBeenCalledTimes(1);
+    }));
+
+    it('preserves newer journal notes when flushing a reflection', fakeAsync(() => {
+      createComponent();
+      tick();
+      component.onReflectionChange('Pending reflection');
+      metricForDay$.next({ ...metricForDay$.value, notes: 'Newer journal text' });
+      tick();
+      expect(component.inputText()).toBe('Pending reflection');
+      component.flushPendingChanges();
+      expect(metricForDay$.value.notes).toBe('Newer journal text');
+      expect(metricForDay$.value.reflections?.[0]?.text).toBe('Pending reflection');
+      flush();
+    }));
+
+    it('writes pending input to its original day before changing days', fakeAsync(() => {
+      const currentDay = signal(TODAY);
+      mockGlobalTrackingIntervalService.todayDateStr = currentDay;
+      mockMetricService.getMetricForDay$.and.callFake((day = TODAY) =>
+        of({
+          ...DEFAULT_METRIC_FOR_DAY,
+          id: day,
+          reflections: [],
+        } as Metric),
+      );
+      createComponent();
+      tick();
+      component.onReflectionChange('Original day reflection');
+      currentDay.set('2025-01-16');
+      tick();
+      expect(mockMetricService.upsertMetric.calls.mostRecent().args[0].id).toBe(TODAY);
+      tick(500);
+      expect(mockMetricService.upsertMetric).toHaveBeenCalledTimes(1);
     }));
   });
 

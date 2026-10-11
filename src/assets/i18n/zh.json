@@ -161,6 +161,7 @@
       "TITLE_REQUIRED": "请填写活动名称。",
       "INVALID_TIME": "结束时间须晚于开始时间，且在 00:00—24:00 内。",
       "INVALID_CATEGORY": "请选择有效的活动分类和类型。",
+      "CATEGORY_NAME_REQUIRED": "关闭前请为每个类别填写名称。",
       "OVERLAP": "与「{{title}}」的 {{start}}—{{end}} 重叠，请调整或拆分。",
       "CATEGORY_STUDY": "学习 / 科研",
       "CATEGORY_WORK": "工作 / 实习",

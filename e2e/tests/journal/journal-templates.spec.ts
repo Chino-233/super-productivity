@@ -73,9 +73,7 @@ test('persists a complete linked plan template and preserves omitted fields', as
   await expect(page.locator('task')).toContainText('Read chapter');
 });
 
-test('saves all editor fields as a template without saving the activity', async ({
-  page,
-}) => {
+test('saves the template immediately and the activity when closing', async ({ page }) => {
   await page.goto('/#/journal');
   const journal = page.locator('journal');
   await journal.getByRole('button', { name: 'Record activity', exact: true }).click();
@@ -90,11 +88,12 @@ test('saves all editor fields as a template without saving the activity', async 
   await expect(journal.getByRole('status')).toHaveText(
     'Template saved. The activity has not been saved yet.',
   );
+  await expect(journal.locator('.calendar-block')).toHaveCount(0);
   await journal
     .getByRole('dialog')
-    .getByRole('button', { name: 'Cancel', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
     .click();
-  await expect(journal.locator('.calendar-block')).toHaveCount(0);
+  await expect(journal.locator('.calendar-block')).toHaveCount(1);
   await waitForStatePersistence(page);
   await page.reload();
   await journal.getByRole('button', { name: 'Stretching', exact: true }).click();
