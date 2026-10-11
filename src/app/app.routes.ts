@@ -9,6 +9,8 @@ import {
   ValidTagIdGuard,
 } from './app.guard';
 
+import type { JournalComponent } from './features/journal/journal.component';
+
 import { TagTaskPageComponent } from './pages/tag-task-page/tag-task-page.component';
 
 export const APP_ROUTES: Routes = [
@@ -42,6 +44,7 @@ export const APP_ROUTES: Routes = [
     loadComponent: () =>
       import('./features/journal/journal.component').then((m) => m.JournalComponent),
     data: { page: 'journal' },
+    canDeactivate: [(component: JournalComponent) => component.closeExpandedViews()],
     canActivate: [FocusOverlayOpenGuard],
   },
   {

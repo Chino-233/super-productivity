@@ -1,14 +1,17 @@
 import {
+  afterRenderEffect,
+  ElementRef,
   ChangeDetectionStrategy,
   Component,
   computed,
   effect,
   inject,
+  HostListener,
   OnDestroy,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { A11yModule } from '@angular/cdk/a11y';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -56,7 +59,6 @@ interface ActivityDraft {
   standalone: true,
   imports: [
     FormsModule,
-    A11yModule,
     MatButtonModule,
     MatIconModule,
     TranslatePipe,
@@ -218,6 +220,14 @@ export class JournalComponent implements OnDestroy {
   categoryDraft: JournalCategory[] | null = null;
   templateDraft: JournalActivityTemplate[] | null = null;
   readonly templateError = signal('');
+  readonly categoryError = signal('');
+  readonly expandedTemplates = signal<string[]>([]);
+  private readonly _reflection = viewChild(ReflectionNoteComponent);
+  private readonly _activityTitle =
+    viewChild<ElementRef<HTMLInputElement>>('activityTitle');
+  private _initialEditor = '';
+  private _initialTemplates = '';
+  private _initialCategories = '';
   private _selectedRange: JournalCalendarSelection | null = null;
   private _editedActivity: JournalActivity | null = null;
   text = '';
@@ -225,6 +235,7 @@ export class JournalComponent implements OnDestroy {
   private _draftKey = '';
 
   constructor() {
+    afterRenderEffect(() => this._activityTitle()?.nativeElement.focus());
     effect(() => {
       const period = this.period();
       const key = `${period}:${this.days()[0]}`;
@@ -238,24 +249,36 @@ export class JournalComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.saveJournal();
+    this.closeExpandedViews();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.closeExpandedViews()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  @HostListener('keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent): void {
+    this.closeExpandedViews();
+    event.stopPropagation();
   }
 
   setPeriod(period: JournalPeriod): void {
-    this.saveJournal();
+    if (!this.closeExpandedViews()) return;
     this.period.set(period);
-    this.editor.set(null);
   }
 
   changeDay(day: string): void {
     if (!isJournalDate(day)) return;
-    this.saveJournal();
+    if (!this.closeExpandedViews()) return;
     this.day.set(day);
-    this.editor.set(null);
   }
 
   openDay(day: string): void {
-    this.saveJournal();
+    if (!isJournalDate(day) || !this.closeExpandedViews()) return;
     this.day.set(day);
     this.period.set('day');
   }
@@ -276,7 +299,41 @@ export class JournalComponent implements OnDestroy {
     this.changeDay(this._dateService.todayStr());
   }
 
-  editActivity(activity?: JournalActivity, copy = false): void {
+  // All dismissal/navigation paths use the same persistence boundary.
+  closeExpandedViews(forceActivity = false): boolean {
+    this.saveJournal();
+    this._reflection()?.closeExpandedViews();
+    const categoriesSaved = this._persistCategories();
+    const templatesSaved = this._persistTemplates();
+    const activitySaved = this._persistActivity(forceActivity);
+    if (!categoriesSaved || !templatesSaved || !activitySaved) return false;
+    this.editor.set(null);
+    this.categoryDraft = null;
+    this.templateDraft = null;
+    this.expandedTemplates.set([]);
+    return true;
+  }
+
+  setView(view: 'timeline' | 'list' | 'compare'): void {
+    if (this.closeExpandedViews()) this.view.set(view);
+  }
+
+  setKind(kind: JournalActivityKind): void {
+    if (this.closeExpandedViews()) this.kind.set(kind);
+  }
+
+  toggleTemplateDetails(id: string): void {
+    const expanded = this.expandedTemplates();
+    if (expanded.includes(id)) {
+      this.saveJournal();
+      this._reflection()?.flushPendingChanges();
+      if (!this._persistTemplates()) return;
+      this.expandedTemplates.set(expanded.filter((entry) => entry !== id));
+    } else this.expandedTemplates.set([...expanded, id]);
+  }
+
+  editActivity(activity?: JournalActivity, copy = false): boolean {
+    if (this.editor() && !this.closeExpandedViews()) return false;
     this.templateSaved.set(false);
     this._selectedRange = null;
     this._editedActivity = copy ? null : (activity ?? null);
@@ -291,10 +348,12 @@ export class JournalComponent implements OnDestroy {
       note: activity?.note ?? '',
       ...(activity?.taskId ? { taskId: activity.taskId } : {}),
     });
+    this._initialEditor = JSON.stringify(this.editor());
+    return true;
   }
 
   selectCalendar(range: JournalCalendarSelection): void {
-    this.editActivity();
+    if (!this.editActivity()) return;
     this._selectedRange = range;
     this.editor.update(
       (draft) =>
@@ -305,6 +364,7 @@ export class JournalComponent implements OnDestroy {
           kind: range.kind,
         },
     );
+    this._initialEditor = JSON.stringify(this.editor());
   }
 
   changeCalendar(change: {
@@ -381,7 +441,15 @@ export class JournalComponent implements OnDestroy {
       this.error.set(this._translate.instant(T.F.JOURNAL.TEMPLATE_INVALID));
       return;
     }
-    this.journal.saveTemplates([...this.journal.templates(), template]);
+    if (this.templateDraft) {
+      const previous = this.templateDraft;
+      this.templateDraft = [...previous, template];
+      if (!this._persistTemplates()) {
+        this.templateDraft = previous;
+        this.error.set(this.templateError());
+        return;
+      }
+    } else this.journal.saveTemplates([...this.journal.templates(), template]);
     this.error.set('');
     this.templateSaved.set(true);
   }
@@ -402,8 +470,14 @@ export class JournalComponent implements OnDestroy {
   }
 
   editTemplates(): void {
+    if (this.templateDraft) {
+      this.closeExpandedViews();
+      return;
+    }
     this.templateError.set('');
     this.templateDraft = this.templates().map((template) => ({ ...template }));
+    this._initialTemplates = JSON.stringify(this.templateDraft);
+    this.expandedTemplates.set([]);
   }
 
   addTemplate(): void {
@@ -417,8 +491,16 @@ export class JournalComponent implements OnDestroy {
     this.templateDraft = this.templateDraft?.filter((entry) => entry.id !== id) ?? null;
   }
 
-  saveTemplates(): void {
-    if (!this.templateDraft) return;
+  saveTemplates(): boolean {
+    return this.closeExpandedViews();
+  }
+
+  private _persistTemplates(): boolean {
+    if (
+      !this.templateDraft ||
+      JSON.stringify(this.templateDraft) === this._initialTemplates
+    )
+      return true;
     if (
       this.templateDraft.some(
         (entry) =>
@@ -428,7 +510,7 @@ export class JournalComponent implements OnDestroy {
       )
     ) {
       this.templateError.set(this._translate.instant(T.F.JOURNAL.TEMPLATE_INVALID));
-      return;
+      return false;
     }
     this.journal.saveTemplates(
       this.templateDraft.map((entry) => ({
@@ -444,12 +526,26 @@ export class JournalComponent implements OnDestroy {
         ...(entry.note ? { note: entry.note } : {}),
       })),
     );
-    this.templateDraft = null;
+    this._initialTemplates = JSON.stringify(this.templateDraft);
+    this.templateError.set('');
+    return true;
   }
 
-  saveActivity(): void {
+  saveActivity(): boolean {
+    return this.closeExpandedViews(true);
+  }
+
+  private _persistActivity(force = false): boolean {
     const draft = this.editor();
-    if (!draft) return;
+    if (!draft) return true;
+    // Untouched empty editors produce no record; unchanged existing entries produce no op.
+    if (
+      !force &&
+      JSON.stringify(draft) === this._initialEditor &&
+      (this._editedActivity ||
+        (!draft.title.trim() && !draft.note.trim() && !draft.taskId))
+    )
+      return true;
     const activity: JournalActivity = {
       ...draft,
       id:
@@ -463,7 +559,7 @@ export class JournalComponent implements OnDestroy {
     const error = this.journal.saveActivity(this.day(), activity);
     if (error) {
       this.error.set(this._translate.instant(T.F.JOURNAL[error.code], error));
-      return;
+      return false;
     }
     this.kind.set(activity.kind);
     if (
@@ -472,7 +568,11 @@ export class JournalComponent implements OnDestroy {
       this._editedActivity.id !== activity.id
     )
       this.journal.removeActivity(this.day(), this._editedActivity.id);
-    this.editor.set(null);
+    this.editor.set({ ...draft, id: activity.id });
+    this._editedActivity = activity;
+    this._initialEditor = JSON.stringify(this.editor());
+    this.error.set('');
+    return true;
   }
 
   removeActivity(activity: JournalActivity): void {
@@ -490,23 +590,43 @@ export class JournalComponent implements OnDestroy {
   }
 
   editCategories(): void {
+    if (this.categoryDraft) {
+      this.closeExpandedViews();
+      return;
+    }
+    this.categoryError.set('');
     this.categoryDraft = this.categories().map((category) => ({ ...category }));
+    this._initialCategories = JSON.stringify(this.categoryDraft);
   }
 
   addCategory(): void {
     this.categoryDraft?.push({ id: this.journal.newId(), name: '', color: '#92bd77' });
   }
 
-  saveCategories(): void {
-    if (!this.categoryDraft || this.categoryDraft.some((c) => !c.name.trim())) return;
+  saveCategories(): boolean {
+    return this.closeExpandedViews();
+  }
+
+  private _persistCategories(): boolean {
+    if (
+      !this.categoryDraft ||
+      JSON.stringify(this.categoryDraft) === this._initialCategories
+    )
+      return true;
+    if (this.categoryDraft.some((c) => !c.name.trim())) {
+      this.categoryError.set(this._translate.instant(T.F.JOURNAL.CATEGORY_NAME_REQUIRED));
+      return false;
+    }
     this.journal.saveCategories(
       this.categoryDraft.map((c) => ({ ...c, name: c.name.trim() })),
     );
-    this.categoryDraft = null;
+    this._initialCategories = JSON.stringify(this.categoryDraft);
+    this.categoryError.set('');
+    return true;
   }
 
   async exportMarkdown(): Promise<void> {
-    this.saveJournal();
+    if (!this.closeExpandedViews()) return;
     const heading = this._translate.instant(this.periodLabels[this.period()]);
     const hours = this._translate.instant(T.F.JOURNAL.HOURS);
     let result = `# ${this.days()[0]} — ${this.days().at(-1)} ${heading}\n\n`;

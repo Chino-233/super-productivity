@@ -235,20 +235,10 @@ summary {
   }
 }
 
-.editor-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-backdrop);
-  background: var(--c-backdrop);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--s2);
+.editor-container {
+  margin-bottom: var(--s3);
 }
 .activity-editor {
-  width: min(640px, 100%);
-  max-height: 90dvh;
-  overflow-y: auto;
   margin: 0;
 }
 .template-shortcuts {

@@ -161,6 +161,7 @@
       "TITLE_REQUIRED": "Enter an activity title.",
       "INVALID_TIME": "End time must be later than start time and within 00:00—24:00.",
       "INVALID_CATEGORY": "Select a valid activity category and type.",
+      "CATEGORY_NAME_REQUIRED": "Enter a name for every category before closing.",
       "OVERLAP": "Overlaps with “{{title}}” ({{start}}—{{end}}). Adjust or split this activity.",
       "CATEGORY_STUDY": "Study / research",
       "CATEGORY_WORK": "Work / internship",

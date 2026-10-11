@@ -104,6 +104,14 @@
           />
         </div>
       }
+      @if (categoryError()) {
+        <p
+          class="error"
+          role="alert"
+        >
+          {{ categoryError() }}
+        </p>
+      }
       <div class="actions">
         <button
           mat-button
@@ -112,9 +120,9 @@
           {{ T.F.JOURNAL.ADD_CATEGORY | translate }}</button
         ><button
           mat-button
-          (click)="categoryDraft = null"
+          (click)="closeExpandedViews()"
         >
-          {{ T.G.CANCEL | translate }}</button
+          {{ T.G.CLOSE | translate }}</button
         ><button
           mat-flat-button
           (click)="saveCategories()"
@@ -146,8 +154,10 @@
               <mat-icon>delete</mat-icon>
             </button>
           </div>
-          <details>
-            <summary>{{ T.F.JOURNAL.TEMPLATE_FIELDS | translate }}</summary>
+          <details [open]="expandedTemplates().includes(entry.id)">
+            <summary (click)="toggleTemplateDetails(entry.id); $event.preventDefault()">
+              {{ T.F.JOURNAL.TEMPLATE_FIELDS | translate }}
+            </summary>
             <div class="form-grid">
               <label
                 >{{ T.F.JOURNAL.ACTIVITY | translate
@@ -247,9 +257,9 @@
         </button>
         <button
           mat-button
-          (click)="templateDraft = null"
+          (click)="closeExpandedViews()"
         >
-          {{ T.G.CANCEL | translate }}
+          {{ T.G.CLOSE | translate }}
         </button>
         <button
           mat-flat-button
@@ -262,15 +272,12 @@
   }
 
   @if (editor(); as draft) {
-    <div class="editor-backdrop">
+    <div class="editor-container">
       <section
         class="panel activity-editor"
         role="dialog"
-        aria-modal="true"
+        aria-modal="false"
         [attr.aria-label]="T.F.JOURNAL.RECORD_ACTIVITY | translate"
-        cdkTrapFocus
-        [cdkTrapFocusAutoCapture]="true"
-        (keydown.escape)="editor.set(null)"
       >
         <div class="template-shortcuts">
           @for (template of templates(); track template.id) {
@@ -289,6 +296,7 @@
             T.F.JOURNAL.ACTIVITY | translate
           }}</label>
           <input
+            #activityTitle
             id="journal-activity-title"
             name="title"
             [(ngModel)]="draft.title"
@@ -393,9 +401,9 @@
             <button
               type="button"
               mat-button
-              (click)="editor.set(null)"
+              (click)="closeExpandedViews()"
             >
-              {{ T.G.CANCEL | translate }}</button
+              {{ T.G.CLOSE | translate }}</button
             ><button
               type="submit"
               mat-flat-button
@@ -423,14 +431,14 @@
           <button
             mat-button
             [class.selected]="kind() === 'actual'"
-            (click)="kind.set('actual')"
+            (click)="setKind('actual')"
           >
             {{ T.F.JOURNAL.ACTUAL | translate }}
           </button>
           <button
             mat-button
             [class.selected]="kind() === 'plan'"
-            (click)="kind.set('plan')"
+            (click)="setKind('plan')"
           >
             {{ T.F.JOURNAL.PLAN | translate }}
           </button>
@@ -445,21 +453,21 @@
           <button
             mat-button
             [class.selected]="view() === 'timeline'"
-            (click)="view.set('timeline')"
+            (click)="setView('timeline')"
           >
             {{ T.F.JOURNAL.TIMELINE | translate }}
           </button>
           <button
             mat-button
             [class.selected]="view() === 'list'"
-            (click)="view.set('list')"
+            (click)="setView('list')"
           >
             {{ T.F.JOURNAL.LIST | translate }}
           </button>
           <button
             mat-button
             [class.selected]="view() === 'compare'"
-            (click)="view.set('compare')"
+            (click)="setView('compare')"
           >
             {{ T.F.JOURNAL.COMPARE | translate }}
           </button>

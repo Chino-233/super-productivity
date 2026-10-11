@@ -97,7 +97,7 @@ test('customizes common activities and applies a default duration or dragged ran
   await expect(journal.locator('#journal-end')).toHaveValue('09:45');
   await journal
     .getByRole('dialog')
-    .getByRole('button', { name: 'Cancel', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
     .click();
 
   const slot = journal.locator('.calendar-slot[data-minute="720"][data-kind="actual"]');
@@ -130,7 +130,10 @@ test('customizes common activities and applies a default duration or dragged ran
   await expect(
     journal.getByRole('button', { name: 'Walk my dog', exact: true }),
   ).toHaveCount(0);
-  await expect(journal.locator('.block-body')).toContainText('Walk my dog');
+  await expect(journal.locator('.block-body')).toContainText([
+    'Walk my dog',
+    'Walk my dog',
+  ]);
 });
 
 test('links the calendar to original tasks and shares the original daily reflection', async ({

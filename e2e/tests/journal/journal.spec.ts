@@ -27,9 +27,14 @@ test('persists activities and period journals, rejects overlap and creates nativ
     .getByRole('button', { name: 'Save', exact: true })
     .click();
   await expect(journal.getByRole('alert')).toContainText('Journal study activity');
+  await journal.locator('#journal-activity-title').press('Escape');
+  await expect(journal.getByRole('dialog')).toBeVisible();
+  // Correct the overlap before closing; closing saves the corrected activity.
+  await journal.locator('#journal-start').fill('12:00');
+  await journal.locator('#journal-end').fill('12:15');
   await journal
-    .locator('.activity-editor')
-    .getByRole('button', { name: 'Cancel', exact: true })
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Close', exact: true })
     .click();
 
   await journal.locator('#journal-text').fill('Daily reflection');
@@ -75,7 +80,7 @@ test('persists activities and period journals, rejects overlap and creates nativ
     .locator('.activity-editor')
     .getByRole('button', { name: 'Save', exact: true })
     .click();
-  await expect(journal.locator('.summary')).toContainText('2.5 hours');
+  await expect(journal.locator('.summary')).toContainText('2.8 hours');
 
   const downloadPromise = page.waitForEvent('download');
   await journal.getByRole('button', { name: 'Export Markdown', exact: true }).click();
