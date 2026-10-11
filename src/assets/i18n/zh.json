@@ -175,10 +175,10 @@
       "COMMON_ACTIVITIES": "常用活动",
       "MANAGE_TEMPLATES": "自定义",
       "TEMPLATES_EMPTY": "添加常用活动，方便快速记录。",
-      "TEMPLATE_HELP": "自定义名称、类别、默认时长和备注。拖选的时间范围优先于默认时长。",
+      "TEMPLATE_HELP": "只需填写模板名称。活动字段留空会保留当前值。固定开始/结束时间优先于所选范围；未设置固定时间时，拖选范围优先于时长。编辑已有的关联计划时，会保留原任务关联。",
       "ADD_TEMPLATE": "添加常用活动",
       "DURATION_MINUTES": "时长（分钟）",
-      "TEMPLATE_INVALID": "请输入名称、选择类别，并将时长设为 15 到 1440 分钟之间的值，且须为 15 分钟的倍数。",
+      "TEMPLATE_INVALID": "请输入模板名称。填写的时间必须按 15 分钟递增（结束时间可为 24:00），结束时间必须晚于开始时间；时长须为 15 到 1440 分钟之间且为 15 分钟的倍数。",
       "COMMON_SLEEP": "睡眠",
       "COMMON_MEAL": "用餐",
       "COMMON_COMMUTE": "通勤",
@@ -195,7 +195,13 @@
       "TRACKING_HELP": "已记录时间来自原任务计时器，也包括归档历史。它会与手动记录的活动分开展示，以免重复计算。",
       "START_TASK": "启动任务计时器",
       "PAUSE_TASK": "暂停任务计时器",
-      "CANCEL_SCHEDULE": "取消日程"
+      "CANCEL_SCHEDULE": "取消日程",
+      "TEMPLATE_NAME": "模板名称",
+      "TEMPLATE_FIELDS": "模板字段（可选）",
+      "TEMPLATE_INHERIT": "保留当前值",
+      "TEMPLATE_TITLE_DEFAULT": "当前活动名称；若未填写，则使用模板名称",
+      "SAVE_TEMPLATE": "保存为常用模板",
+      "TEMPLATE_SAVED": "模板已保存。活动尚未保存。"
     },
     "IOS_SHARE": {
       "SAVE": "保存",

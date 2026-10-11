@@ -77,7 +77,8 @@ test('customizes common activities and applies a default duration or dragged ran
   await expect(journal.locator('.template-fields')).toHaveCount(6);
   const entry = journal.locator('.template-fields').last();
   await entry.locator('input').first().fill('Walk my dog');
-  await entry.locator('select').selectOption('life');
+  await entry.locator('summary').click();
+  await entry.getByLabel('Category', { exact: true }).selectOption('life');
   await entry.locator('input[type="number"]').fill('45');
   await journal
     .locator('.template-editor')

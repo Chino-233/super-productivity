@@ -25,9 +25,15 @@ export interface JournalPeriodEntry {
 
 export interface JournalActivityTemplate {
   id: string;
-  title: string;
-  categoryId: string;
-  duration: number;
+  name?: string;
+  title?: string;
+  categoryId?: string;
+  duration?: number;
+  start?: string;
+  end?: string;
+  kind?: JournalActivityKind;
+  /** Undefined keeps the current link; null explicitly selects no task. */
+  taskId?: string | null;
   note?: string;
 }
 
