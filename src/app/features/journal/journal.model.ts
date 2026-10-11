@@ -16,6 +16,9 @@ export interface JournalActivity {
   kind: JournalActivityKind;
   note?: string;
   taskId?: string;
+  weekPlanId?: string;
+  /** Budget segments reference tasks without replacing their native schedule. */
+  taskLinkMode?: 'reference';
 }
 
 export interface JournalPeriodEntry {
@@ -59,3 +62,27 @@ export const DEFAULT_JOURNAL_CATEGORIES: JournalCategory[] = [
   { id: 'travel', name: 'F.JOURNAL.CATEGORY_TRAVEL', color: '#96a7b5' },
   { id: 'other', name: 'F.JOURNAL.CATEGORY_OTHER', color: '#db9a99' },
 ];
+
+export interface JournalMonthPlan {
+  id: string;
+  title: string;
+  fromDay: string;
+  toDay: string;
+  categoryId: string;
+  note?: string;
+  taskId?: string;
+}
+
+export interface JournalWeekPlan {
+  id: string;
+  title: string;
+  day: string;
+  minutes: number;
+  categoryId: string;
+  note?: string;
+  taskId?: string;
+  monthPlanId?: string;
+}
+
+export type JournalMonthPlanEntry = JournalMonthPlan & { anchor: string };
+export type JournalWeekPlanEntry = JournalWeekPlan & { anchor: string };

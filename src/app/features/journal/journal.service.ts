@@ -18,7 +18,17 @@ import {
   JournalActivityTemplate,
   JournalCategory,
   JournalPeriod,
+  JournalMonthPlan,
+  JournalWeekPlan,
+  JournalMonthPlanEntry,
+  JournalWeekPlanEntry,
 } from './journal.model';
+import {
+  validateMonthPlan,
+  validateWeekPlan,
+  weekPlanProgress,
+  JournalPlanningError,
+} from './journal-planning.util';
 import {
   JournalActivityError,
   journalPeriodDays,
@@ -71,6 +81,17 @@ export class JournalService {
   readonly templates = computed(
     () => this._config.misc()?.journalActivityTemplates ?? DEFAULT_JOURNAL_TEMPLATES,
   );
+  readonly monthPlans = computed<JournalMonthPlanEntry[]>(() =>
+    this.metrics().flatMap((metric) =>
+      (metric.journalMonthPlans ?? []).map((plan) => ({ ...plan, anchor: metric.id })),
+    ),
+  );
+  readonly weekPlans = computed<JournalWeekPlanEntry[]>(() =>
+    this.metrics().flatMap((metric) =>
+      (metric.journalWeekPlans ?? []).map((plan) => ({ ...plan, anchor: metric.id })),
+    ),
+  );
+
   readonly activitiesByDay = computed(() => {
     const result: Record<string, JournalActivity[]> = {};
     const linkedPlans = new Map<string, JournalActivity>();
@@ -79,6 +100,7 @@ export class JournalService {
       for (const activity of metric.journalActivities ?? []) {
         if (
           activity.kind === 'plan' &&
+          activity.taskLinkMode !== 'reference' &&
           activity.taskId &&
           this.taskById()[activity.taskId]
         )
@@ -123,7 +145,11 @@ export class JournalService {
       this.categories(),
     );
     if (error) return error;
-    if (activity.kind === 'plan' && activity.taskId) {
+    if (
+      activity.kind === 'plan' &&
+      activity.taskId &&
+      activity.taskLinkMode !== 'reference'
+    ) {
       const task = this.activeTasks().find((entry) => entry.id === activity.taskId);
       if (!task) return { code: 'TASK_UNAVAILABLE' };
       const dueWithTime = new Date(`${day}T${journalTime(activity.start)}:00`).getTime();
@@ -161,6 +187,62 @@ export class JournalService {
     });
   }
 
+  saveMonthPlan(anchor: string, plan: JournalMonthPlan): JournalPlanningError | null {
+    const error = validateMonthPlan(plan, this.categories());
+    if (error) return error;
+    this._metrics.updateMetric(anchor, {
+      journalMonthPlans: [
+        ...(this.byDay()[anchor]?.journalMonthPlans ?? []).filter(
+          (p) => p.id !== plan.id,
+        ),
+        { ...plan, title: plan.title.trim() },
+      ],
+    });
+    return null;
+  }
+
+  saveWeekPlan(anchor: string, plan: JournalWeekPlan): JournalPlanningError | null {
+    const error = validateWeekPlan(
+      anchor,
+      plan,
+      this.weekPlans(),
+      this.monthPlans(),
+      this.categories(),
+    );
+    if (error) return error;
+    this._metrics.updateMetric(anchor, {
+      journalWeekPlans: [
+        ...(this.byDay()[anchor]?.journalWeekPlans ?? []).filter((p) => p.id !== plan.id),
+        { ...plan, title: plan.title.trim() },
+      ],
+    });
+    return null;
+  }
+
+  removeMonthPlan(plan: JournalMonthPlanEntry): void {
+    this._metrics.updateMetric(plan.anchor, {
+      journalMonthPlans: (this.byDay()[plan.anchor]?.journalMonthPlans ?? []).filter(
+        (p) => p.id !== plan.id,
+      ),
+    });
+  }
+
+  removeWeekPlan(plan: JournalWeekPlanEntry): void {
+    this._metrics.updateMetric(plan.anchor, {
+      journalWeekPlans: (this.byDay()[plan.anchor]?.journalWeekPlans ?? []).filter(
+        (p) => p.id !== plan.id,
+      ),
+    });
+  }
+
+  progress(plan: JournalWeekPlan): {
+    planned: number;
+    actual: number;
+    remaining: number;
+  } {
+    return weekPlanProgress(plan, this.activitiesByDay()[plan.day] ?? []);
+  }
+
   saveJournal(day: string, period: JournalPeriod, text: string, plan: string): void {
     const anchor = journalPeriodDays(day, period)[0];
     const changes: Partial<Metric> =
@@ -190,6 +272,24 @@ export class JournalService {
 
   createTask(day: string, activity: JournalActivity): void {
     if (activity.taskId || activity.kind !== 'plan') return;
+    if (activity.weekPlanId || activity.taskLinkMode === 'reference') {
+      const taskId = this._tasks.add(
+        activity.title,
+        false,
+        {
+          dueDay: day,
+          journalCategoryId: activity.categoryId,
+          timeEstimate: (activity.end - activity.start) * 60000,
+          notes: activity.note ?? '',
+        },
+        false,
+        true,
+      );
+      // Keep this split calendar segment and its budget source independently of
+      // the original task's single native schedule.
+      this.saveActivity(day, { ...activity, taskId, taskLinkMode: 'reference' });
+      return;
+    }
     this._tasks.add(
       activity.title,
       false,

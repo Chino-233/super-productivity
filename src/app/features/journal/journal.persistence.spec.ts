@@ -43,6 +43,25 @@ describe('Journal metric persistence', () => {
       metric: {
         id: '2026-10-09',
         changes: {
+          journalMonthPlans: [
+            {
+              id: 'month',
+              title: 'Report',
+              fromDay: '2026-10-09',
+              toDay: '2026-10-16',
+              categoryId: 'work',
+            },
+          ],
+          journalWeekPlans: [
+            {
+              id: 'week',
+              title: 'Report session',
+              day: '2026-10-09',
+              minutes: 120,
+              categoryId: 'work',
+              monthPlanId: 'month',
+            },
+          ],
           journalActivities: [
             {
               id: 'a',
@@ -51,6 +70,8 @@ describe('Journal metric persistence', () => {
               end: 600,
               categoryId: 'study',
               kind: 'actual',
+              weekPlanId: 'week',
+              taskLinkMode: 'reference',
             },
           ],
         },
@@ -59,6 +80,14 @@ describe('Journal metric persistence', () => {
     const extended = metricReducer(legacy, action);
     expect(validateAppDataProperty('metric', extended).success).toBeTrue();
     expect(metricReducer(legacy, action)).toEqual(extended);
+    const reviewed = metricReducer(
+      extended,
+      updateMetric({
+        metric: { id: '2026-10-09', changes: { notes: 'Reflection update' } },
+      }),
+    );
+    expect(reviewed.entities['2026-10-09']?.journalMonthPlans?.[0].id).toBe('month');
+    expect(reviewed.entities['2026-10-09']?.journalWeekPlans?.[0].minutes).toBe(120);
     expect(action.meta.entityType).toBe('METRIC');
     expect(action.meta.entityId).toBe('2026-10-09');
   });

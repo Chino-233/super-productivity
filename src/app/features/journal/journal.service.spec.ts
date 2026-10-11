@@ -18,6 +18,7 @@ describe('JournalService', () => {
   let taskChanges: jasmine.Spy;
   let activeTasks: BehaviorSubject<Task[]>;
   let dispatch: jasmine.Spy;
+  let metricData: BehaviorSubject<Metric[]>;
   const initialActivity: JournalActivity = {
     id: 'a',
     title: 'Work',
@@ -33,20 +34,20 @@ describe('JournalService', () => {
     taskChanges = jasmine.createSpy('update');
     dispatch = jasmine.createSpy('dispatch');
     activeTasks = new BehaviorSubject<Task[]>([]);
+    metricData = new BehaviorSubject<Metric[]>([
+      {
+        id: '2026-10-09',
+        focusSessions: [1000],
+        journalActivities: [initialActivity],
+      },
+    ]);
     TestBed.configureTestingModule({
       providers: [
         JournalService,
         {
           provide: MetricService,
           useValue: {
-            getAllMetrics$: () =>
-              new BehaviorSubject<Metric[]>([
-                {
-                  id: '2026-10-09',
-                  focusSessions: [1000],
-                  journalActivities: [initialActivity],
-                },
-              ]),
+            getAllMetrics$: () => metricData,
             updateMetric,
           },
         },
@@ -80,6 +81,103 @@ describe('JournalService', () => {
   it('defaults old metrics and configuration without adding required persisted fields', () => {
     expect(service.categories().length).toBe(7);
     expect(service.byDay()['2026-10-09'].journalWeekly).toBeUndefined();
+    expect(service.monthPlans()).toEqual([]);
+    expect(service.weekPlans()).toEqual([]);
+  });
+
+  it('patches only the planning array and refuses invalid dates and fractional slots', () => {
+    const plan = {
+      id: 'month',
+      title: ' Report ',
+      fromDay: '2026-10-09',
+      toDay: '2026-10-16',
+      categoryId: 'work',
+    };
+    expect(service.saveMonthPlan('2026-10-01', { ...plan, toDay: '2026-10-08' })).toBe(
+      'PLAN_DATES_INVALID',
+    );
+    expect(updateMetric).not.toHaveBeenCalled();
+    expect(service.saveMonthPlan('2026-10-01', plan)).toBeNull();
+    expect(updateMetric).toHaveBeenCalledWith('2026-10-01', {
+      journalMonthPlans: [{ ...plan, title: 'Report' }],
+    });
+    updateMetric.calls.reset();
+    const budget = {
+      id: 'week',
+      title: 'Report',
+      day: '2026-10-09',
+      minutes: 18,
+      categoryId: 'work',
+    };
+    expect(service.saveWeekPlan('2026-10-05', budget)).toBe('BUDGET_INVALID');
+    expect(updateMetric).not.toHaveBeenCalled();
+    expect(service.saveWeekPlan('2026-10-05', { ...budget, minutes: 120 })).toBeNull();
+    expect(updateMetric).toHaveBeenCalledWith('2026-10-05', {
+      journalWeekPlans: [{ ...budget, minutes: 120 }],
+    });
+  });
+
+  it('keeps split budget segments without changing the linked native task schedule', () => {
+    const segment: JournalActivity = {
+      ...initialActivity,
+      id: 'segment',
+      kind: 'plan',
+      weekPlanId: 'week',
+      taskId: 'original',
+      taskLinkMode: 'reference',
+    };
+    expect(service.saveActivity('2026-10-09', segment)).toBeNull();
+    expect(taskChanges).not.toHaveBeenCalled();
+    expect(updateMetric).toHaveBeenCalledWith('2026-10-09', {
+      journalActivities: [initialActivity, segment],
+    });
+  });
+
+  it('hydrates referenced segments as separate intervals and derives progress from them', () => {
+    const budget = {
+      id: 'week',
+      title: 'Work',
+      day: '2026-10-09',
+      minutes: 120,
+      categoryId: 'work',
+      taskId: 'original',
+    };
+    const first: JournalActivity = {
+      ...initialActivity,
+      kind: 'plan',
+      taskId: 'original',
+      weekPlanId: 'week',
+      taskLinkMode: 'reference',
+    };
+    const second = { ...first, id: 'b', start: 840, end: 870 };
+    metricData.next([
+      {
+        id: '2026-10-09',
+        journalWeekPlans: [budget],
+        journalActivities: [first, second],
+      },
+    ]);
+    activeTasks.next([{ id: 'original', title: 'Original title' } as Task]);
+    expect(service.activitiesByDay()['2026-10-09']).toEqual([first, second]);
+    expect(service.weekPlans()[0].anchor).toBe('2026-10-09');
+    expect(service.progress(budget)).toEqual({ planned: 90, actual: 0, remaining: 30 });
+  });
+
+  it('retains the weekly source when creating a task from a split segment', () => {
+    const segment: JournalActivity = {
+      ...initialActivity,
+      id: 'segment',
+      kind: 'plan',
+      weekPlanId: 'week',
+    };
+    service.createTask('2026-10-09', segment);
+    expect(tasks.calls.mostRecent().args[2].dueDay).toBe('2026-10-09');
+    expect(tasks.calls.mostRecent().args[2].dueWithTime).toBeUndefined();
+    expect(updateMetric.calls.mostRecent().args[1].journalActivities).toEqual([
+      initialActivity,
+      { ...segment, taskId: 'task-created', taskLinkMode: 'reference' },
+    ]);
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('validates before dispatching a day-scoped activity patch', () => {

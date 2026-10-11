@@ -13,6 +13,8 @@ describe('Journal closing persistence', () => {
     categories: ReturnType<typeof signal<JournalCategory[]>>;
     templates: ReturnType<typeof signal<JournalActivityTemplate[]>>;
     byDay: ReturnType<typeof signal<Record<string, never>>>;
+    weekPlans: ReturnType<typeof signal<never[]>>;
+    monthPlans: ReturnType<typeof signal<never[]>>;
     newId: jasmine.Spy;
     saveJournal: jasmine.Spy;
     saveCategories: jasmine.Spy;
@@ -25,6 +27,8 @@ describe('Journal closing persistence', () => {
       categories: signal([{ id: 'study', name: 'Study', color: '#123456' }]),
       templates: signal([{ id: 'reading', name: 'Reading' }]),
       byDay: signal({}),
+      weekPlans: signal([]),
+      monthPlans: signal([]),
       newId: jasmine.createSpy('newId').and.returnValue('new-activity'),
       saveJournal: jasmine.createSpy('saveJournal'),
       saveCategories: jasmine.createSpy('saveCategories'),

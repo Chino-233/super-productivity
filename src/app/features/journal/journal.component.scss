@@ -77,6 +77,17 @@ small,
   display: grid;
   gap: var(--s3);
 }
+.period-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.period-layout .journal-side {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .period-layout .journal-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .activity-controls,
 .view-controls {
   margin-bottom: var(--s2);
